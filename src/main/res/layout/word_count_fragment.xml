@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/word_count_fragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Fragments.WordCountFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/word_count_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_margin="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/imageView" />
+
+        <ProgressBar
+            android:id="@+id/progress_circular"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_margin="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/word_count_recycler"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/imageView" />
+
+        <TextView
+            android:id="@+id/word_count_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="30sp"
+            android:inputType="text"
+            android:maxLines="1"
+            style="@style/text_style"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/more_less"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:text="@string/more"
+            android:tag="more"
+            android:textColor="@color/teal_200"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/word_count_description" />
+
+        <TextView
+            android:id="@+id/word_count_hard_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/date"
+            style="@style/text_style"
+            app:layout_constraintEnd_toStartOf="@+id/word_count_hard_positive"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/more_less" />
+
+        <TextView
+            android:id="@+id/word_count_hard_positive"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sent"
+            style="@style/text_style"
+            app:layout_constraintEnd_toStartOf="@+id/word_count_hard_negative"
+            app:layout_constraintStart_toEndOf="@+id/word_count_hard_date"
+            app:layout_constraintTop_toBottomOf="@+id/more_less" />
+
+        <TextView
+            android:id="@+id/word_count_hard_negative"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/next_day"
+            style="@style/text_style"
+            app:layout_constraintEnd_toStartOf="@+id/word_count_sentiment"
+            app:layout_constraintStart_toEndOf="@+id/word_count_hard_positive"
+            app:layout_constraintTop_toBottomOf="@+id/more_less" />
+
+        <TextView
+            android:id="@+id/word_count_hard_next_day"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/one_month"
+            style="@style/text_style"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/word_count_sentiment"
+            app:layout_constraintTop_toBottomOf="@+id/more_less" />
+
+        <TextView
+            android:id="@+id/word_count_description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:maxLines="1"
+            style="@style/text_style"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/word_count_title" />
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="0dp"
+            android:layout_height="6dp"
+            android:layout_marginTop="8dp"
+            android:scaleType="fitXY"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/word_count_hard_next_day"
+            app:srcCompat="@android:drawable/bottom_bar"
+            app:tint="?attr/colorControlNormal" />
+
+        <ImageView
+            android:id="@+id/single_imageView"
+            android:layout_width="0dp"
+            android:layout_height="6dp"
+            android:layout_marginTop="8dp"
+            android:scaleType="fitXY"
+            app:tint="?attr/colorControlNormal"
+            app:srcCompat="@android:drawable/bottom_bar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/single_date" />
+
+        <TextView
+            android:id="@+id/word_count_sentiment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/two_weeks"
+            style="@style/text_style"
+            app:layout_constraintEnd_toStartOf="@+id/word_count_hard_next_day"
+            app:layout_constraintStart_toEndOf="@+id/word_count_hard_negative"
+            app:layout_constraintTop_toBottomOf="@+id/more_less" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:id="@+id/single_recyclerview"
+            android:layout_margin="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/single_imageView" />
+
+        <TextView
+            android:id="@+id/single_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/date"
+            style="@style/text_style"
+            app:layout_constraintEnd_toStartOf="@+id/single_positive"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/word_count_recycler" />
+
+        <TextView
+            android:id="@+id/single_positive"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/pos"
+            style="@style/text_style"
+            app:layout_constraintEnd_toStartOf="@+id/single_negative"
+            app:layout_constraintStart_toEndOf="@+id/single_date"
+            app:layout_constraintTop_toTopOf="@+id/single_date" />
+
+        <TextView
+            android:id="@+id/single_negative"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/neg"
+            style="@style/text_style"
+            app:layout_constraintEnd_toStartOf="@+id/single_sentiment"
+            app:layout_constraintStart_toEndOf="@+id/single_positive"
+            app:layout_constraintTop_toTopOf="@+id/single_positive" />
+
+        <TextView
+            android:id="@+id/single_sentiment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sent"
+            style="@style/text_style"
+            app:layout_constraintEnd_toStartOf="@+id/single_next_day"
+            app:layout_constraintStart_toEndOf="@+id/single_negative"
+            app:layout_constraintTop_toTopOf="@+id/single_negative" />
+
+        <TextView
+            android:id="@+id/single_next_day"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/next_day"
+            style="@style/text_style"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/single_sentiment"
+            app:layout_constraintTop_toTopOf="@+id/single_sentiment" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</FrameLayout>

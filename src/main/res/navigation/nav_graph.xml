@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/wordCountFragment">
+
+    <fragment
+        android:id="@+id/wordCountFragment"
+        android:name="gemenielabs.sentiment.Fragments.WordCountFragment"
+        android:label="word_count_fragment"
+        tools:layout="@layout/word_count_fragment" >
+        <action
+            android:id="@+id/action_wordCountFragment_to_mainHostFragment"
+            app:destination="@id/mainHostFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/priceFragment"
+        android:name="gemenielabs.sentiment.Fragments.PriceFragment"
+        android:label="price_fragment"
+        tools:layout="@layout/price_fragment" >
+        <action
+            android:id="@+id/action_priceFragment_to_mainHostFragment"
+            app:destination="@id/mainHostFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/portfolioFragment"
+        android:name="gemenielabs.sentiment.Fragments.PortfolioFragment"
+        android:label="portfolio_fragment"
+        tools:layout="@layout/portfolio_fragment" >
+        <action
+            android:id="@+id/action_portfolioFragment_to_mainHostFragment"
+            app:destination="@id/mainHostFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/newsFragment"
+        android:name="gemenielabs.sentiment.Fragments.NewsFragment"
+        android:label="news_fragment"
+        tools:layout="@layout/news_fragment" >
+        <action
+            android:id="@+id/action_newsFragment_to_mainHostFragment"
+            app:destination="@id/mainHostFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/searchFragment"
+        android:name="gemenielabs.sentiment.Fragments.SearchFragment"
+        android:label="SearchFragment" />
+    <fragment
+        android:id="@+id/mainHostFragment"
+        android:name="gemenielabs.sentiment.Fragments.MainHostFragment"
+        android:label="MainHostFragment" />
+</navigation>

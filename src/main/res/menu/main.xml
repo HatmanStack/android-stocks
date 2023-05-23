@@ -1,0 +1,23 @@
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <!-- "Mark Favorite", should appear as action button if possible -->
+    <item
+        android:title="@string/title_activity_main"
+        android:id="@+id/action_search"
+        android:icon="@drawable/ic_search_white_24dp"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_price"
+        android:icon="@drawable/ic_paid_white_24dp"
+        android:title="@string/title_activity_main"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_portfolio"
+        android:icon="@drawable/ic_trending_up_white_24dp"
+        android:title="@string/title_activity_main"
+        app:showAsAction="always" />
+
+</menu>

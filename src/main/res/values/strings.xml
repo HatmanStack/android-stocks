@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Stocks</string>
+    <string name="title_activity_main">MainActivity</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="next">Next</string>
+    <string name="date">DATE</string>
+    <string name="open">OPEN</string>
+    <string name="close">CLOSE</string>
+    <string name="volume">VOLUME</string>
+    <string name="name">Name</string>
+    <string name="tick">Tick</string>
+    <string name="one_month">1 MNTH</string>
+    <string name="two_weeks">2 WKS</string>
+    <string name="start_date">Start Date</string>
+    <string name="ticker">Ticker</string>
+    <string name="more">MORE</string>
+    <string name="next_day">NEXT DAY</string>
+    <string name="delete">Delete</string>
+    <string name="pos">POS</string>
+    <string name="neg">NEG</string>
+    <string name="sent">SENT</string>
+
+</resources>
