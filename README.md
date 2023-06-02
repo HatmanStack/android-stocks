@@ -1,14 +1,10 @@
 # Stocks
 
-The Stocks App is an application that utilizes a custom bag-of-words strategy and natural language processing (NLP) techniques for sentiment analysis of news articles. It combines this sentiment analysis with other metrics like price and volume to perform multivariate logistic regression and forecast market movements over different time frames. The calculations for these predictions are carried out off-device through serverless microservices.
+Stocks is an app that analyzes news articles to predict how the stock market will move in different time frames. It uses techniques like bag-of-words and natural language processing (NLP) to understand the sentiment of the articles. It takes into account factors like price and volume to make predictions using multivariate logistic regression. The app does all the complex calculations off-device using serverless microservices.
 
 ## Demo
 
-Click [here](https://www.youtube.com/watch?v=HYekJElfHBM) to access the demo.
-
-## Installation
-
-You can download the application from the Google Play Store by clicking [here](https://play.google.com/store/apps/details?id=gemenielabs.sentiment).
+Click [here](https://www.youtube.com/watch?v=HYekJElfHBM) to access the Youtube demo. You can download the application from the Google Play Store by clicking [here](https://play.google.com/store/apps/details?id=gemenielabs.sentiment).
 
 ## Features
 
