@@ -21,6 +21,7 @@ import gemenielabs.sentiment.Recycler.StockFragmentCollectionAdapter;
 
 public class StockHostFragment extends Fragment {
 
+    // Inflate the layout for the fragment
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -28,20 +29,29 @@ public class StockHostFragment extends Fragment {
         return inflater.inflate(R.layout.stock_host_fragment, container, false);
     }
 
+    // Set up the ViewPager2 and TabLayout for the fragment
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        StockFragmentCollectionAdapter stockFragmentCollectionAdapter = new StockFragmentCollectionAdapter(this);
+        // Create a StockFragmentCollectionAdapter object
+        StockFragmentCollectionAdapter adapter = new StockFragmentCollectionAdapter(this);
+
+        // Set the adapter for the ViewPager2
         ViewPager2 viewPager = view.findViewById(R.id.pager);
-        viewPager.setAdapter(stockFragmentCollectionAdapter);
+        viewPager.setAdapter(adapter);
+
+        // Set a ZoomOutPageTransformer as the page transformer for the ViewPager2
         viewPager.setPageTransformer(new ZoomOutPageTransformer());
+
+        // Create a TabLayoutMediator object to link the TabLayout and ViewPager2
         TabLayout tabLayout = view.findViewById(R.id.tab_layout);
         String[] labels = {"Price", "Words", "News"};
         new TabLayoutMediator(tabLayout, viewPager,
+                // Set the labels for the tabs
                 (tab, position) -> tab.setText(labels[position])
         ).attach();
+
+        // Set the setHasOptionsMenu flag to true to indicate that the fragment has an options menu
         setHasOptionsMenu(true);
     }
-
-
 }
 

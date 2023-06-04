@@ -37,47 +37,62 @@ import gemenielabs.sentiment.R;
 import gemenielabs.sentiment.Recycler.PortfolioRecycler;
 import gemenielabs.sentiment.Room.PortfolioDetails;
 
+/**
+ * PortfolioFragment is a fragment that displays the user's portfolio of stocks.
+ * It implements PortfolioRecycler.PorfolioClickListener to handle clicks on portfolio items.
+ */
 public class PortfolioFragment extends Fragment implements PortfolioRecycler.PorfolioClickListener {
 
     private PriceLiveData model;
-    private String currentName;
-    private String currentTicker;
+    private String currentName, currentTicker;
     private Button portfolioButton;
     private ProgressBar progressBar;
     private View fragmentView;
     private RecyclerView recyclerView;
     private PortfolioRecycler portfolioRecycler;
 
-
+    /**
+     * Creates a new instance of PortfolioFragment.
+     *
+     * @return A new instance of PortfolioFragment.
+     */
     public static PortfolioFragment newInstance() {
         return new PortfolioFragment();
     }
 
+    /**
+     * Inflates the layout for the fragment.
+     *
+     * @param inflater           The LayoutInflater object that can be used to inflate any views in the fragment.
+     * @param container          If non-null, this is the parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state as given here.
+     * @return The inflated view for the fragment.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.portfolio_fragment, container, false);
     }
 
+    /**
+     * Initializes the views and sets up the LiveData observers.
+     *
+     * @param view               The view returned by onCreateView.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state as given here.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         setViews(view);
-
         if(getActivity() != null){
             Context context = getActivity();
             LocalDate date = LocalDate.now();
             SharedPreferences sharedPreferences = context.getSharedPreferences("gemenielabs.sentiment.Fragments", Context.MODE_PRIVATE);
-            Log.i("TAG_PortfolioFragment_date:  ", sharedPreferences.getString("DATE",""));
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            //editor.putString("DATE", String.valueOf(LocalDate.now().minusDays(2)));
-            //editor.apply();
-            //Set Initial Date
             if(sharedPreferences.getString("DATE","").equals("")){
                 editor.putString("DATE",date.toString());
                 editor.apply();
             }
             LocalDate previousDate = LocalDate.parse(sharedPreferences.getString("DATE", LocalDate.now().toString()));
-            Log.i("TAG_PortfolioFragment_date:  ", previousDate.toString());
             if(date.isAfter(previousDate)){
                 editor.putString("DATE", date.toString());
                 editor.apply();
@@ -85,48 +100,34 @@ public class PortfolioFragment extends Fragment implements PortfolioRecycler.Por
                 fragmentExplainer();
             }
         }
-       Executors.newSingleThreadExecutor().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        changeVisibility(true);
-                        final List<PortfolioDetails> list = stockDao.getPortfolioDetails();
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                model.getPortfolioDetails().setValue(list);
-                            }
-                        });
-                    }
-                });
+        Executors.newSingleThreadExecutor().execute(() -> {
+            changeVisibility(true);
+            final List<PortfolioDetails> list = stockDao.getPortfolioDetails();
+            getActivity().runOnUiThread(() -> model.getPortfolioDetails().setValue(list));
+        });
         model.getPortfolioDetails().observe(getViewLifecycleOwner(), portfolioDetails ->{
             changeVisibility(false);
             portfolioRecycler.setPortfolioList(portfolioDetails);
         });
-        model.getName().observe(getViewLifecycleOwner(), string ->{
-            currentName = string;
-        });
-        model.getTicker().observe(getViewLifecycleOwner(), string ->{
-            currentTicker = string;
-        });
-        portfolioButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                fragmentExplainer();
-                if (currentTicker != null) {
-                    Executors.newSingleThreadExecutor().execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (!stockDao.getWordCountDetails(currentTicker).get(0).getSentiment().equals("No News Data")) {
-                                Log.i("TAG", "CLICK");
-                                updateData(false);
-                            }
-                        }
-                    });
-                }
+        model.getName().observe(getViewLifecycleOwner(), string -> currentName = string);
+        model.getTicker().observe(getViewLifecycleOwner(), string -> currentTicker = string);
+        portfolioButton.setOnClickListener(v -> {
+            fragmentExplainer();
+            if (currentTicker != null) {
+                Executors.newSingleThreadExecutor().execute(() -> {
+                    if (!stockDao.getWordCountDetails(currentTicker).get(0).getSentiment().equals("No News Data")) {
+                        updateData(false);
+                    }
+                });
             }
         });
     }
 
+    /**
+     * Initializes the views for the fragment.
+     *
+     * @param view The view returned by onCreateView.
+     */
     public void setViews(View view){
         model = new ViewModelProvider(requireActivity()).get(PriceLiveData.class);
         fragmentView = view;
@@ -138,56 +139,56 @@ public class PortfolioFragment extends Fragment implements PortfolioRecycler.Por
         recyclerView.setAdapter(portfolioRecycler);
     }
 
+    /**
+     * Displays a message to the user explaining the functionality of the fragment.
+     */
     public void fragmentExplainer(){
         Toast.makeText(getContext(), "Number Indicates Accuracy of Model", Toast.LENGTH_LONG).show();
         Toast.makeText(getContext(), "Updating", Toast.LENGTH_LONG).show();
     }
 
-
+    /**
+     * Updates the data for the current stock.
+     *
+     * @param updating Whether the data is being updated or not.
+     */
     public void updateData(Boolean updating){
         blockingActionBar = true;
-        Executors.newSingleThreadExecutor().execute(new Runnable() {
-            @Override
-            public void run() {
-                SetPortfolioData setPortfolioData = new SetPortfolioData();
-                Fragment fragment = getParentFragment();
-                List<PortfolioDetails> portfolioDetails;
-                Log.i("TAG", "UPDATEDATA");
-                if(fragment == null) {
-                    portfolioDetails = setPortfolioData.setPortfolioData(updating,
-                            currentName,
-                            currentTicker,
-                            getActivity());
-                    Log.i("TAG", "UPDATEDATA   portfoliodetails    " + portfolioDetails.size());
-                    final List<PortfolioDetails> deets = portfolioDetails;
-                    if(isAdded()) {
-                        requireActivity().runOnUiThread(() -> {
-                            Log.i("TAG", "UPDATEDATA   DEETS    " + deets.size());
-                            model.getPortfolioDetails().setValue(deets);
-                        });
-                    }
+        Executors.newSingleThreadExecutor().execute(() -> {
+            SetPortfolioData setPortfolioData = new SetPortfolioData();
+            Fragment fragment = getParentFragment();
+            List<PortfolioDetails> portfolioDetails;
+            if(fragment == null) {
+                portfolioDetails = setPortfolioData.setPortfolioData(updating, currentName, currentTicker, getActivity());
+                final List<PortfolioDetails> deets = portfolioDetails;
+                if(isAdded()) {
+                    requireActivity().runOnUiThread(() -> model.getPortfolioDetails().setValue(deets));
                 }
             }
         });
     }
 
+    /**
+     * Changes the visibility of the views based on the loading state.
+     *
+     * @param visible Whether the views should be visible or not.
+     */
     public void changeVisibility(boolean visible){
         try {
-            if (visible) {
-                recyclerView.setVisibility(View.GONE);
-                portfolioButton.setVisibility(View.GONE);
-                progressBar.setVisibility(View.VISIBLE);
-            } else {
-                progressBar.setVisibility(View.GONE);
-                recyclerView.setVisibility(View.VISIBLE);
-                portfolioButton.setVisibility(View.VISIBLE);
-            }
+            recyclerView.setVisibility(visible ? View.GONE : View.VISIBLE);
+            portfolioButton.setVisibility(visible ? View.GONE : View.VISIBLE);
+            progressBar.setVisibility(visible ? View.VISIBLE : View.GONE);
         }catch (Exception e){
             e.printStackTrace();
         }
-
     }
 
+    /**
+     * Handles clicks on portfolio items.
+     *
+     * @param name   The name of the stock.
+     * @param ticker The ticker symbol of the stock.
+     */
     @Override
     public void porfolioClickListener(String name, String ticker) {
         LayoutInflater inflater = (LayoutInflater) requireActivity().getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -201,29 +202,20 @@ public class PortfolioFragment extends Fragment implements PortfolioRecycler.Por
         String stockString = name + "\n" + ticker;
         ticker_textview.setText(stockString);
 
-        delete_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Executors.newSingleThreadExecutor().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        stockDao.deleteByStockDetails(stockDao.getStockDetails(ticker));
-                        stockDao.deleteByNewsDetails(stockDao.getNewsDetails(ticker));
-                        stockDao.deleteByWordCountDetails(stockDao.getWordCountDetails(ticker));
-                        stockDao.deleteByCombinedWordDetails(stockDao.getCombinedWordDetails(ticker));
-                        stockDao.deleteByPortfolioDetails(stockDao.getSinglePortfolioDetails(ticker));
-                        stockDao.deleteBySymbolDetails(stockDao.getSingleSymbolDetails(ticker));
-                        List<PortfolioDetails> list = stockDao.getPortfolioDetails();
-                        requireActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                model.getPortfolioDetails().setValue(list);
-                                popupWindow.dismiss();
-                            }
-                        });
-                    }
+        delete_button.setOnClickListener(v -> {
+            Executors.newSingleThreadExecutor().execute(() -> {
+                stockDao.deleteByStockDetails(stockDao.getStockDetails(ticker));
+                stockDao.deleteByNewsDetails(stockDao.getNewsDetails(ticker));
+                stockDao.deleteByWordCountDetails(stockDao.getWordCountDetails(ticker));
+                stockDao.deleteByCombinedWordDetails(stockDao.getCombinedWordDetails(ticker));
+                stockDao.deleteByPortfolioDetails(stockDao.getSinglePortfolioDetails(ticker));
+                stockDao.deleteBySymbolDetails(stockDao.getSingleSymbolDetails(ticker));
+                List<PortfolioDetails> list = stockDao.getPortfolioDetails();
+                requireActivity().runOnUiThread(() -> {
+                    model.getPortfolioDetails().setValue(list);
+                    popupWindow.dismiss();
                 });
-            }
+            });
         });
     }
 }

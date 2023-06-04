@@ -28,60 +28,64 @@ import gemenielabs.sentiment.Recycler.SingleWordCountRecycler;
 
 public class WordCountFragment extends Fragment {
 
-    RecyclerView recyclerView;
-    RecyclerView singleRecyclerView;
+    // UI components
+    private RecyclerView recyclerView;
+    private RecyclerView singleRecyclerView;
     private ProgressBar progressBar;
     private TextView description;
     private TextView moreLess;
 
-
+    // newInstance method to create a new instance of the fragment
     public static WordCountFragment newInstance() {
         return new WordCountFragment();
     }
 
-
+    // onCreateView method to inflate the layout for the fragment
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.word_count_fragment, container, false);
     }
 
+    // onViewCreated method to set up the UI components and display the word count details
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        // Get the PriceLiveData ViewModel instance
         PriceLiveData model = new ViewModelProvider(requireActivity()).get(PriceLiveData.class);
+
+        // Set up the RecyclerViews
         recyclerView = view.findViewById(R.id.word_count_recycler);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         singleRecyclerView = view.findViewById(R.id.single_recyclerview);
-        progressBar = view.findViewById(R.id.progress_circular);
         singleRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        assert getParentFragment() != null;
-        CombinedWordCountRecycler combinedWordCountRecycler = new CombinedWordCountRecycler( getParentFragment().getActivity());
-        SingleWordCountRecycler singleWordCountRecycler = new SingleWordCountRecycler( getParentFragment().getActivity());
+
+        // Set up the adapters for the RecyclerViews
+        CombinedWordCountRecycler combinedWordCountRecycler = new CombinedWordCountRecycler(getParentFragment().getActivity());
+        SingleWordCountRecycler singleWordCountRecycler = new SingleWordCountRecycler(getParentFragment().getActivity());
         singleRecyclerView.setAdapter(singleWordCountRecycler);
         recyclerView.setAdapter(combinedWordCountRecycler);
+
+        // Set up the title and description TextViews
         TextView title = view.findViewById(R.id.word_count_title);
         description = view.findViewById(R.id.word_count_description);
         moreLess = view.findViewById(R.id.more_less);
-        changeVisibility(true);
-        moreLess.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setUpDescription(v);
-            }
-        });
+
+        // Set up the click listener for the "more/less" TextView
+        moreLess.setOnClickListener(v -> setUpDescription(v));
+
+        // Observe the LiveData objects and update the UI accordingly
         model.getName().observe(getViewLifecycleOwner(), title::setText);
-        model.getDescription().observe(getViewLifecycleOwner(), string ->{
+        model.getDescription().observe(getViewLifecycleOwner(), string -> {
             description.setText(string);
-            description.setPadding(50,0,0,0);
+            description.setPadding(50, 0, 0, 0);
         });
         model.getWordCountContent().observe(getViewLifecycleOwner(), singleWordCountRecycler::setSingleWordCountDetailsList);
-
-        model.getCombinedWordDetails().observe(getViewLifecycleOwner(), combinedWordDetails ->{
-            if(combinedWordDetails != null && combinedWordDetails.size() > 0) {
+        model.getCombinedWordDetails().observe(getViewLifecycleOwner(), combinedWordDetails -> {
+            if (combinedWordDetails != null && combinedWordDetails.size() > 0) {
                 changeVisibility(!combinedWordDetails.get(0).getTicker().equals(SearchFragment.holderTicker));
                 blockingActionBar = !combinedWordDetails.get(0).getTicker().equals(SearchFragment.holderTicker);
             }
-            if(getActivity() != null) {
+            if (getActivity() != null) {
                 Context context = getActivity();
                 LocalDate date = LocalDate.now();
                 SharedPreferences sharedPreferences = context.getSharedPreferences("gemenielabs.sentiment.Fragments", Context.MODE_PRIVATE);
@@ -90,24 +94,24 @@ public class WordCountFragment extends Fragment {
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putString("WORDCOUNT_DATE", date.toString());
                     editor.apply();
-                    Toast.makeText(getContext(), "Historically Stock Movement From Date\n " +
-                            "Sentiment Color Indicates Confidence", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), "Historically Stock Movement From Date Sentiment Color Indicates Confidence", Toast.LENGTH_LONG).show();       
                 }
             }
-
             combinedWordCountRecycler.setWordCountDetailsList(combinedWordDetails);
         });
 
+        // Display a toast message to indicate that sentiment analysis is being performed
         Toast.makeText(getContext(), "Sentiment Analysis Being Performed", Toast.LENGTH_LONG).show();
     }
 
-    public void setUpDescription(View v){
+    // Method to set up the description TextView with "more/less" functionality
+    public void setUpDescription(View v) {
         int maxLines;
-        if(v.getTag().equals("more")){
+        if (v.getTag().equals("more")) {
             moreLess.setText("LESS");
             maxLines = 100;
             v.setTag("less");
-        }else {
+        } else {
             v.setTag("more");
             maxLines = 1;
             moreLess.setText("MORE");
@@ -115,7 +119,8 @@ public class WordCountFragment extends Fragment {
         description.setMaxLines(maxLines);
     }
 
-    public void changeVisibility(boolean visible){
+    // Method to change the visibility of the UI components
+    public void changeVisibility(boolean visible) {
         try {
             if (visible) {
                 progressBar.setVisibility(View.VISIBLE);
@@ -126,7 +131,7 @@ public class WordCountFragment extends Fragment {
                 singleRecyclerView.setVisibility(View.VISIBLE);
                 recyclerView.setVisibility(View.VISIBLE);
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

@@ -31,28 +31,30 @@ import gemenielabs.sentiment.R;
 import gemenielabs.sentiment.Recycler.SearchRecycler;
 import okhttp3.OkHttpClient;
 
-public class SearchFragment extends Fragment implements SearchRecycler.searchClickListener{
+public class SearchFragment extends Fragment implements SearchRecycler.searchClickListener {
 
+    // Declare variables
     private EditText searchText;
     private PriceLiveData model;
-    SearchRecycler searchRecycler;
+    private SearchRecycler searchRecycler;
     private CalendarView calendarStart;
     public static String holderTicker;
     public static OkHttpClient client = new OkHttpClient().newBuilder()
-            //This Timeout is a POS you know why...Fucking POS
             .readTimeout(45, TimeUnit.SECONDS).build();
 
-
+    // Create a new instance of the SearchFragment
     public static SearchFragment newInstance() {
         return new SearchFragment();
     }
 
+    // Inflate the layout for this fragment
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.search_fragment, container, false);
     }
 
+    // Initialize the view and set up the search button and calendar
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         model = new ViewModelProvider(requireActivity()).get(PriceLiveData.class);
@@ -68,68 +70,58 @@ public class SearchFragment extends Fragment implements SearchRecycler.searchCli
         calendarStart.setDate(calendar.getTimeInMillis());
         model.getDate().setValue(formatDate(calendar.get(Calendar.YEAR), (calendar.get(Calendar.MONTH)),
                 calendar.get(Calendar.DAY_OF_MONTH)));
-        calendarStart.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
-            @Override
-            public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
-                model.getDate().setValue(formatDate(year,month,dayOfMonth));
+        calendarStart.setOnDateChangeListener((view1, year, month, dayOfMonth) -> {
+            model.getDate().setValue(formatDate(year, month, dayOfMonth));
+        });
+        viewVisibility(view, false);
+        searchButton.setOnClickListener(v -> {
+            viewVisibility(view, true);
+            Executors.newSingleThreadExecutor().execute(() -> {
+                SetSearchSymbolData setSearchSymbolData = new SetSearchSymbolData();
+                final ArrayList<String[]> list = setSearchSymbolData.getSearchData(searchText.getText().toString());
+                if (getParentFragment().getActivity() != null) {
+                    getParentFragment().requireActivity().runOnUiThread(() -> {
+                        if (list.size() < 1) {
+                            Toast.makeText(getContext(), "No Results", Toast.LENGTH_SHORT).show();
+                            viewVisibility(view, false);
+                        }
+                        searchRecycler.setSearchList(list, false);
+                    });
                 }
             });
-        viewVisibility(view, false);
-        searchButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                viewVisibility(view, true);
-                Executors.newSingleThreadExecutor().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        SetSearchSymbolData setSearchSymbolData = new SetSearchSymbolData();
-                        final ArrayList<String[]> list = setSearchSymbolData.getSearchData(searchText.getText().toString());
-                        if(getParentFragment().getActivity() != null){
-                            getParentFragment().requireActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (list.size() < 1) {
-                                        Toast.makeText(getContext(), "No Results", Toast.LENGTH_SHORT).show();
-                                        viewVisibility(view, false);
-                                    }
-                                    searchRecycler.setSearchList(list, false);
-                                }
-                            });
-                        }
-                    }
-                });
-            }
         });
     }
 
-    public String formatDate(int year, int month, int dayOfMonth){
-        String date = "";
-        if(month+1 < 10){
-            date = year + "-0"+ (month + 1) + "-" + dayOfMonth;
-        }else {
-            date = year + "-"+ (month + 1) + "-" + dayOfMonth;
+    // Format the date to be used in the API call
+    public String formatDate(int year, int month, int dayOfMonth) {
+        String date;
+        if (month + 1 < 10) {
+            date = year + "-0" + (month + 1) + "-" + dayOfMonth;
+        } else {
+            date = year + "-" + (month + 1) + "-" + dayOfMonth;
         }
         Log.i("TAG", "DATE  " + date);
-        if(dayOfMonth < 10){
-            date = date.substring(0,8) + "0" + date.substring(8);
+        if (dayOfMonth < 10) {
+            date = date.substring(0, 8) + "0" + date.substring(8);
         }
         return date;
     }
 
-    public void viewVisibility(View v, boolean Search){
+    // Show or hide the calendar based on whether the search button has been clicked
+    public void viewVisibility(View v, boolean Search) {
         TextView startTV = v.findViewById(R.id.start_date_text_view);
-        if(Search){
+        if (Search) {
             calendarStart.setVisibility(View.GONE);
             startTV.setVisibility(View.GONE);
-        }else {
+        } else {
             calendarStart.setVisibility(View.VISIBLE);
             startTV.setVisibility(View.VISIBLE);
         }
     }
 
+    // Handle the click event for a search item
     @Override
     public void onSearchItemClicked(String name, String ticker) {
-
         model.getName().setValue(name);
         model.getTicker().setValue(ticker);
         holderTicker = ticker;

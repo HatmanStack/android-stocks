@@ -35,37 +35,60 @@ import gemenielabs.sentiment.Room.StockDetails;
 import gemenielabs.sentiment.Room.SymbolDetails;
 import gemenielabs.sentiment.Room.WordCountDetails;
 
+/**
+ * This class represents a fragment that displays stock prices and related information.
+ */
 public class PriceFragment extends Fragment {
 
+    // ArrayLists to store TextViews for stock symbols and their corresponding information
     private final ArrayList<TextView> symbolViews = new ArrayList<>();
     private final ArrayList<TextView> textViews = new ArrayList<>();
+
+    // LiveData object to store stock price data
     private PriceLiveData model;
+
+    // String to store the current date
     private String currentDate;
 
-
+    /**
+     * Returns a new instance of the PriceFragment.
+     */
     public static PriceFragment newInstance() {
         return new PriceFragment();
     }
 
+    /**
+     * Inflates the layout for the PriceFragment.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.price_fragment, container, false);
     }
 
+    /**
+     * Initializes the views and sets up the LiveData observers for the PriceFragment.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         assert getParentFragment() != null;
+
+        // Create a new StockRecycler object and set up the RecyclerView
         StockRecycler stockRecycler = new StockRecycler(getParentFragment().getActivity());
         int[] hard = {R.id.stock_symbol, R.id.stock_name, R.id.stock_marketexchange, R.id.stock_ipoyear};
-       for (int c : hard) {
+        for (int c : hard) {
             symbolViews.add(view.findViewById(c));
         }
 
+        // Get the PriceLiveData object from the ViewModelProvider
         model = new ViewModelProvider(requireActivity()).get(PriceLiveData.class);
+
+        // Set up the RecyclerView
         RecyclerView recyclerView = view.findViewById(R.id.stock_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerView.setAdapter(stockRecycler);
+
+        // Set up the LiveData observers for the PriceFragment
         model.getDate().observe(getViewLifecycleOwner(), string ->{
                 currentDate = string;
         });
@@ -73,23 +96,32 @@ public class PriceFragment extends Fragment {
         model.getPrice().observe(getViewLifecycleOwner(), stockRecycler::setPrice);
     }
 
+    /**
+     * Sets the stock symbol data for the PriceFragment.
+     */
     public void setSymbolData(String args){
         Executors.newSingleThreadExecutor().execute(new Runnable() {
             @Override
             public void run() {
+                // Create new SetDailySymbolData, SetStockPriceData, and SetNewsData objects
                 SetDailySymbolData symbolData = new SetDailySymbolData();
                 final SymbolDetails deets = symbolData.setDailySymbolData(args);
                 SetStockPriceData data = new SetStockPriceData();
                 final List<StockDetails> stockDetails = data.getPriceData(args, currentDate);
                 SetNewsData newsData = new SetNewsData();
                 final List<NewsDetails> newsdeets = newsData.setNewsData(args, stockDetails);
+
+                // Log the size of the newsdeets list
                 Log.i("TAG_Price_Fragment_newsdeets:  ", " " + newsdeets.size());
+
+                // Get the word count data for the newsdeets list
                 getWordCountData(args, newsdeets);
 
                 if(getParentFragment() != null) {
                     getParentFragment().requireActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            // Set the LiveData values for the PriceFragment
                             model.getPrice().setValue(stockDetails);
                             model.getName().setValue(deets.getName());
                             model.getDescription().setValue(deets.getLongDescription());
@@ -109,10 +141,14 @@ public class PriceFragment extends Fragment {
         });
     }
 
+    /**
+     * Gets the word count data for the newsdeets list.
+     */
     public void getWordCountData(String args, List<NewsDetails> list){
         Executors.newSingleThreadExecutor().execute(new Runnable() {
             @Override
             public void run() {
+                // Create new SetWordCountData and SetCombineWordCountData objects
                 SetWordCountData wordCountData = new SetWordCountData();
                 if(getParentFragment() != null) {
                     final List<WordCountDetails> words = wordCountData.setWordCountData(args, list,
@@ -122,6 +158,7 @@ public class PriceFragment extends Fragment {
                     getParentFragment().requireActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            // Set the LiveData values for the PriceFragment
                             model.getCombinedWordDetails().setValue(combinedWordDetails);
                             model.getWordCountContent().setValue(words);
                             Log.i("TAG_pricefragment_getwordcountdata_List_size:  ", "" + list.size() + " " + words.size());
@@ -135,6 +172,4 @@ public class PriceFragment extends Fragment {
             }
         });
     }
-
-
 }
