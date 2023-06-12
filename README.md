@@ -19,9 +19,9 @@ Click [here](https://www.youtube.com/watch?v=HYekJElfHBM) to access the Youtube 
 
 - Android SDK
 - Android JetPack
-- Tiingo API for Stock Data [here](https://www.tiingo.com/)
-- Sentiment Analysis Microservice [here](https://github.com/HatmanStack/python-sentiment-analysis)
-- Logistic Regression Microservice [here](https://github.com/HatmanStack/python-logistic-prediction)
+- [Tiingo](https://www.tiingo.com/) API for Stock Data
+- Sentiment Analysis [microservice](https://github.com/HatmanStack/python-sentiment-analysis)
+- Logistic Regression [microservice](https://github.com/HatmanStack/python-logistic-prediction)
 
 
 ## Screenshots
