@@ -1,6 +1,6 @@
 # Stocks
 
-Stocks is an app that analyzes news articles to predict how the stock market will move in different time frames. It uses techniques like bag-of-words and natural language processing (NLP) to understand the sentiment of the articles. It takes into account factors like price and volume to make predictions using multivariate logistic regression. The app does all the complex calculations off-device using serverless microservices.
+Stocks is an app that analyzes news articles to predict stock market movements across different time frames. By employing techniques like bag-of-words and natural language processing (NLP), it assesses the sentiment conveyed in the articles. This app takes into consideration various factors, including price and volume, and employs multivariate logistic regression to make predictions. To ensure efficient performance, Stocks leverages serverless microservices for complex calculations.
 
 ## Demo
 
