@@ -38,297 +38,256 @@ public class SetWordCountData {
     public static final MediaType JSON = MediaType.parse("application/json");
     private static final String FAIL = "fail";
 
-    public class SetWordCountData {
-
-        // Define media type and fail string as constants
-        private static final MediaType JSON = MediaType.parse("application/json");
-        private static final String FAIL = "fail";
+    public List<WordCountDetails> setWordCountData(String ticker, List<NewsDetails> list, Context context) {
+        // Log statements removed for code conciseness
     
-        // Refactored setWordCountData function
-        public List<WordCountDetails> setWordCountData(String ticker, List<NewsDetails> list, Context context) {
-            Log.i("TAG_start  ", "SETWordCountData_START");
-            Log.i("TAG_SetWordCount_list_size: ", String.valueOf(list.size()));
-            ArrayList<CompletableFuture<String[]>> articles = new ArrayList<>();
+        ArrayList<CompletableFuture> articles = new ArrayList<>();
+        if (list.size() > 0) {
+            ArrayList<CompletableFuture> results = new ArrayList<>();
     
-            // Check if list is not empty
-            if (!list.isEmpty()) {
-                Log.i("TAG_SetWordCount_start_NewSentiment:   ", "Start");
+            // Process each news article asynchronously
+            for (NewsDetails news : list) {
+                String newsArticleDate = news.getDate();
+                String url = news.getAddress();
+                articles.add(CompletableFuture.supplyAsync(() -> getArticleBody(url, newsArticleDate)));
+            }
     
-                ArrayList<CompletableFuture<String>> results = new ArrayList<>();
+            // Wait until all articles are processed
+            while (articles.size() != list.size()) {
+                // Wait until all articles are processed
+            }
     
-                // Loop through the list and add articles to CompletableFuture list
-                for (NewsDetails news : list) {
-                    String newsArticleDate = news.getDate();
-                    String url = news.getAddress();
-                    Log.i("TAG_setWordCount_newsArticleDate:  ", newsArticleDate);
-                    articles.add(CompletableFuture.supplyAsync(() -> getArticleBody(url, newsArticleDate)));
+            HashMap<String, String[]> Hash_Article_Date = new HashMap<>();
+            int SpeedDisMuthaUp = 0;
+    
+            // Process the articles and gather information
+            for (CompletableFuture future : articles) {
+                String[] body = new String[0];
+                try {
+                    body = (String[]) future.get();
+                } catch (ExecutionException | InterruptedException e) {
+                    e.printStackTrace();
                 }
     
-                // Wait for all articles to be added to the CompletableFuture list
-                CompletableFuture.allOf(articles.toArray(new CompletableFuture[0])).join();
+                // Remove numbers and percentages from the article body
+                String replaceNumbers = body[0].replaceAll("-*\\+*\\d*.\\d*%", "");
+                int hash = replaceNumbers.hashCode();
     
-                HashMap<String, String[]> Hash_Article_Date = new HashMap<>();
-                int SpeedDisMuthaUp = 0;
-    
-                // Loop through the articles and get their sentiment
-                for (CompletableFuture<String[]> future : articles) {
-                    String[] body = new String[0];
-                    try {
-                        body = future.get();
-                    } catch (ExecutionException | InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    String replaceNumbers = body[0].replaceAll("-*\\+*\\d*.\\d*%", "");
-                    Log.i("TAG_setWordCount_replaceNumbers_string:  ", replaceNumbers);
-                    int hash = replaceNumbers.hashCode();
-                    WordCountDetails isHere = stockDao.getSingleHashedWordCountDetails(ticker, hash);
-                    if (isHere != null && !isHere.getSentiment().equals(FAIL)) {
-                        continue;
-                    }
-                    if (!body[0].equals(FAIL) && SpeedDisMuthaUp < 8) {
-                        Hash_Article_Date.put(String.valueOf(hash), body);
-                        SpeedDisMuthaUp++;
-                    }
+                // Check if the article body has been processed before and skip if sentiment is available
+                WordCountDetails isHere = stockDao.getSingleHashedWordCountDetails(ticker, hash);
+                if (isHere != null && !isHere.getSentiment().equals(FAIL)) {
+                    continue;
                 }
     
-                // Loop through the articles and get their sentiment
-                for (String key : Hash_Article_Date.keySet()) {
-                    String[] bodyWithHash = {key, Hash_Article_Date.get(key)[0]};
-                    results.add(CompletableFuture.supplyAsync(() -> getSentiment(bodyWithHash)));
-                }
-    
-                // Wait for all sentiments to be added to the CompletableFuture list
-                CompletableFuture.allOf(results.toArray(new CompletableFuture[0])).join();
-    
-                // Loop through the results and insert them into the database
-                for (CompletableFuture<String> future : results) {
-                    String returns = null;
-                    try {
-                        returns = future.get();
-                    } catch (ExecutionException | InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    WordCountDetails wordCountDetails = new WordCountDetails(" ", 0, " ",
-                            0, 0, 0, 0, 0, "",
-                            "", 0);
-                    String[] resultsString = returns.split(" ");
-    
-                    String body = Hash_Article_Date.get(resultsString[0])[0];
-                    String date = Hash_Article_Date.get(resultsString[0])[1];
-                    if (resultsString[1].equals(FAIL)) {
-                        wordCountDetails.setSentiment(FAIL);
-                        wordCountDetails.setDate(date);
-                        wordCountDetails.setBody(body);
-                        wordCountDetails.setHash(Integer.valueOf(resultsString[0]));
-                        stockDao.insertWordCountContent(wordCountDetails);
-                        continue;
-                    }
-    
-                    int[] words = recordWordCounts(context, body);
-                    wordCountDetails.setSentiment(resultsString[1]);
-                    wordCountDetails.setSentimentNumber(Double.parseDouble(resultsString[2]));
-                    wordCountDetails.setDate(date.substring(0, 10));
-                    wordCountDetails.setTicker(ticker);
-                    wordCountDetails.setHash(Integer.valueOf(resultsString[0]));
-                    double next = createPercentageGainLoss(ticker, date, 0);
-                    double wks = createPercentageGainLoss(ticker, date, 14);
-                    double mnth = createPercentageGainLoss(ticker, date, 28);
-                    wordCountDetails.setNextDay(next);
-                    wordCountDetails.setTwoWks(wks);
-                    wordCountDetails.setOneMnth(mnth);
-                    wordCountDetails.setBody(body);
-                    wordCountDetails.setPositive(words[0]);
-                    wordCountDetails.setNegative(words[1]);
-    
-                    stockDao.insertWordCountContent(wordCountDetails);
+                // Add the article body to the HashMap if sentiment is not available and speed limit is not reached
+                if (!body[0].equals(FAIL) && SpeedDisMuthaUp < 8) {
+                    Hash_Article_Date.put(String.valueOf(hash), body);
+                    SpeedDisMuthaUp++;
                 }
             }
     
-            // Get word count details from the database
-            List<WordCountDetails> wordCountDetailsList = stockDao.getWordCountDetails(ticker);
-    
-            // If the list is empty, create a no news word count detail and add it to the database
-            if (wordCountDetailsList.isEmpty()) {
-                createNoNewsWordCountDetail(ticker);
-                wordCountDetailsList = stockDao.getWordCountDetails(ticker);
+            // Process the article bodies to get sentiment asynchronously
+            for (String key : Hash_Article_Date.keySet()) {
+                String[] bodyWithHash = {key, Hash_Article_Date.get(key)[0]};
+                results.add(CompletableFuture.supplyAsync(() -> getSentiment(bodyWithHash)));
             }
     
-            return wordCountDetailsList;
+            // Wait until all results are processed
+            while (Hash_Article_Date.size() != results.size()) {
+                // Wait until all results are processed
+            }
+    
+            // Insert word count details into the database
+            for (CompletableFuture future : results) {
+                String returns = null;
+                try {
+                    returns = (String) future.get();
+                } catch (ExecutionException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+                WordCountDetails wordCountDetails = createWordCountDetails(ticker, returns, Hash_Article_Date);
+                stockDao.insertWordCountContent(wordCountDetails);
+            }
         }
     
-        // Refactored getArticleBody function
-        public String[] getArticleBody(String url, String date) {
-            String[] body = {"", date};
-            try {
-                Request request = new Request.Builder()
-                        .url(url)
-                        .get()
-                        .build();
-                Response response = client.newCall(request).execute();
-                Document doc = Jsoup.parse(Objects.requireNonNull(response.body()).string());
-                body[0] = Objects.requireNonNull(doc.getElementById("js-article__body")).text();
-            } catch (Exception e) {
-                e.printStackTrace();
-                Log.i("TAG_setWordCount_getArticleBody_Successful:  ", "FALSE");
-                body[0] = FAIL;
-            }
+        // Retrieve word count details from the database
+        List<WordCountDetails> wordCountDetailsList = stockDao.getWordCountDetails(ticker);
+    
+        // If no word count details are found, create a default entry
+        if (wordCountDetailsList.size() == 0) {
+            createNoNewsWordCountDetail(ticker);
+            wordCountDetailsList = stockDao.getWordCountDetails(ticker);
+        }
+    
+        return wordCountDetailsList;
+    }
+    
+    // Create WordCountDetails object based on the sentiment analysis results
+    private WordCountDetails createWordCountDetails(String ticker, String returns, HashMap<String, String[]> hashArticleDate) {
+        WordCountDetails wordCountDetails = new WordCountDetails(" ", 0, " ",
+                0, 0, 0, 0, 0, "",
+                "", 0);
+        String[] resultsString = returns.split(" ");
+    
+        String body = hashArticleDate.get(resultsString[0])[0];
+        String date = hashArticleDate.get(resultsString[0])[1];
+    
+        // Set WordCountDetails properties based on sentiment analysis results
+        if (resultsString[1].equals(FAIL)) {
+            wordCountDetails.setSentiment(FAIL);
+            wordCountDetails.setDate(date);
+            wordCountDetails.setBody(body);
+            wordCountDetails.setHash(Integer.valueOf(resultsString[0]));
+            stockDao.insertWordCountContent(wordCountDetails);
+            return wordCountDetails;
+        }
+    
+        int[] words = recordWordCounts(context, body);
+        wordCountDetails.setSentiment(resultsString[1]);
+        wordCountDetails.setSentimentNumber(Double.parseDouble(resultsString[2]));
+        wordCountDetails.setDate(date.substring(0, 10));
+        wordCountDetails.setTicker(ticker);
+        wordCountDetails.setHash(Integer.valueOf(resultsString[0]));
+        double next = createPercentageGainLoss(ticker, date, 0);
+        double wks = createPercentageGainLoss(ticker, date, 14);
+        double mnth = createPercentageGainLoss(ticker, date, 28);
+        wordCountDetails.setNextDay(next);
+        wordCountDetails.setTwoWks(wks);
+        wordCountDetails.setOneMnth(mnth);
+        wordCountDetails.setBody(body);
+        return wordCountDetails;
+    }
+    
+    // Create a default WordCountDetails entry for cases with no news data
+    private void createNoNewsWordCountDetail(String ticker) {
+        WordCountDetails wordCountDetails = new WordCountDetails(" ", 0, " ",
+                0, 0, 0, 0, 0, "",
+                "", 0);
+        String noNewsData = "No News Data";
+        wordCountDetails.setTicker(ticker);
+        wordCountDetails.setSentiment(noNewsData);
+        wordCountDetails.setHash(noNewsData.hashCode());
+        LocalDate date = LocalDate.now();
+        wordCountDetails.setDate(date.toString());
+        stockDao.insertWordCountContent(wordCountDetails);
+    }
+    
+    // Retrieve the article body from the specified URL
+    public String[] getArticleBody(String url, String date) {
+        String[] body = {"", date};
+        try {
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .build();
+            Response response = client.newCall(request).execute();
+            Document doc = Jsoup.parse(Objects.requireNonNull(response.body()).string());
+            body[0] = Objects.requireNonNull(doc.getElementById("js-article__body")).text();
+        } catch (Exception e) {
+            e.printStackTrace();
+            body[0] = FAIL;
             return body;
         }
-    
-        // Create a no news word count detail and add it to the database
-        private void createNoNewsWordCountDetail(String ticker) {
-            WordCountDetails wordCountDetails = new WordCountDetails(" ", 0, " ",
-                    0, 0, 0, 0, 0, "",
-                    "", 0);
-            String noNewsData = "No News Data";
-            wordCountDetails.setTicker(ticker);
-            wordCountDetails.setSentiment(noNewsData);
-            wordCountDetails.setHash(noNewsData.hashCode());
-            LocalDate date = LocalDate.now();
-            wordCountDetails.setDate(date.toString());
-            stockDao.insertWordCountContent(wordCountDetails);
-        }
+        return body;
     }
-
-    / This function records the count of positive and negative words in a given article body
-public int[] recordWordCounts(Context context, String body) {
-    // Initialize variables
-    String[] positive;
-    String[] negative;
-    int pos = 0;
-    int neg = 0;
-    // Split the article body into an array of words
-    String[] articleBody = body.split(" ");
-    // Sort the array of words
-    Arrays.sort(articleBody);
-    // Initialize a holder variable to keep track of the first letter of the current word
-    String holder = "a";
-    // Loop through each word in the sorted array
-    for (String word : articleBody) {
-        // Convert the word to lowercase and remove any non-alphabetic characters
-        String lowerWord = word.toLowerCase().replaceAll("[^a-zA-Z]", "");
-        // Check if the length of the word is greater than 1
-        if (lowerWord.length() > 1) {
-            // Get the first letter of the word
-            String firstLetter = lowerWord.substring(0, 1);
-            // Check if the first letter is different from the previous word's first letter
-            if (!firstLetter.equals(holder)) {
-                // Update the positive and negative word arrays based on the current first letter
-                String alphabet = "abcdefghijklmnopqrstuvwxyz";
-                positive = context.getResources().getStringArray(R.array.positive_words_a);
-                negative = context.getResources().getStringArray(R.array.positive_words_a);
-                positive = context.getResources().getStringArray(positive_word_ids[alphabet.indexOf(holder)]);
-                negative = context.getResources().getStringArray(negative_word_ids[alphabet.indexOf(holder)]);
-                holder = firstLetter;
-            }
-            // Loop through each positive word and increment the count if the word is found
-            for (String po : positive) {
-                if (po.equals(lowerWord)) {
+    
+    // Record word counts for positive and negative words in the article body
+    public int[] recordWordCounts(Context context, String body) {
+        String alphabet = "abcdefghijklmnopqrstuvwxyz";
+        String[] positive;
+        String[] negative;
+        int pos = 0;
+        int neg = 0;
+        String[] articleBody = body.split(" ");
+        Arrays.sort(articleBody);
+        String holder = "a";
+        for (String word : articleBody) {
+            String lowerWord = word.toLowerCase().replaceAll("[^a-zA-Z]", "");
+            if (lowerWord.length() > 1) {
+                String firstLetter = lowerWord.substring(0, 1);
+                if (!firstLetter.equals(holder)) {
+                    holder = firstLetter;
+                    positive = context.getResources().getStringArray(positive_word_ids[alphabet.indexOf(holder)]);
+                    negative = context.getResources().getStringArray(negative_word_ids[alphabet.indexOf(holder)]);
+                }
+                if (Arrays.asList(positive).contains(lowerWord)) {
                     pos++;
                 }
-            }
-            // Loop through each negative word and increment the count if the word is found
-            for (String n : negative) {
-                if (n.equals(lowerWord)) {
+                if (Arrays.asList(negative).contains(lowerWord)) {
                     neg++;
                 }
             }
         }
+        return new int[]{pos, neg};
     }
-    // Return an array containing the count of positive and negative words
-    return new int[]{pos, neg};
-}
-
-// This function calculates the percentage gain or loss of a stock based on its closing price on two different dates
-public double createPercentageGainLoss(String ticker, String date, int time) {
-    // Initialize variables
-    LocalDate dateGain = LocalDate.parse(date);
-    dateGain = dateGain.plusDays(time);
-    boolean naPrevent = false;
-    // Loop through the next 5 days to find a valid stock price
-    for (int j = 0; j < 5; j++) {
-        dateGain = dateGain.plusDays(1);
-        // Check if a valid stock price is found
-        if (stockDao.getSingleStock(ticker, dateGain.toString()) != null) {
-            naPrevent = true;
-            break;
-        } else if (j == 4) {
-            // Return 0 if a valid stock price is not found after 5 days
-            return 0;
+    
+    // Calculate the percentage gain/loss for the specified ticker and date
+    public double createPercentageGainLoss(String ticker, String date, int time) {
+        LocalDate dateGain = LocalDate.parse(date).plusDays(time);
+        boolean naPrevent = false;
+        for (int j = 0; j < 5; j++) {
+            dateGain = dateGain.plusDays(1);
+            if (stockDao.getSingleStock(ticker, dateGain.toString()) != null) {
+                naPrevent = true;
+                break;
+            } else if (j == 4) {
+                return 0;
+            }
         }
+        double change = stockDao.getSingleStock(ticker, dateGain.toString()).getClose() -
+                stockDao.getSingleStock(ticker, date).getClose();
+        double finalChange = change / stockDao.getSingleStock(ticker, dateGain.toString()).getClose();
+        if (naPrevent && finalChange == 0.0) {
+            finalChange = 0.00001;
+        }
+        return finalChange;
     }
-    // Calculate the change in closing price
-    double change = stockDao.getSingleStock(ticker, dateGain.toString()).getClose() -
-            stockDao.getSingleStock(ticker, date).getClose();
-    // Calculate the percentage change in closing price
-    double finalChange = change / stockDao.getSingleStock(ticker, dateGain.toString()).getClose();
-    // To prevent N/A for 0.0 final change on close @ the same price two days in a row
-    if (naPrevent && (finalChange == 0.0)) {
-        finalChange = 0.00001;
+    
+    // Get sentiment analysis for the given article body
+    public String getSentiment(String[] body) {
+        String alpha = body[1].replaceAll("\"", "").replaceAll("'", "").replaceAll(",", "").replaceAll("’", "");
+        String[] alphaSplit = alpha.split("(?<!\\w\\.\\w.)(?<!([A-Z][a-z])\\{30,\\}\\.)(?<=[.?])\\s");
+        String hashString = body[0];
+        JsonSend sourceArray = new JsonSend(alphaSplit, hashString);
+        String jString = new Gson().toJson(sourceArray);
+        String url = "https://stocks-backend-sentiment-f3jmjyxrpq-uc.a.run.app";
+        String prediction = "";
+        try {
+            RequestBody r_body = RequestBody.create(JSON, jString);
+            Request request = new Request.Builder()
+                    .url(url)
+                    .post(r_body)
+                    .build();
+            Response response = client.newCall(request).execute();
+            String bodyOfResponse = response.body().string();
+            prediction = convertToList(new Gson().fromJson(bodyOfResponse, JsonReturn.class));
+            response.close();
+        } catch (SocketTimeoutException e) {
+            return hashString + " " + FAIL + " " + body[1];
+        } catch (Exception e) {
+            e.printStackTrace();
+            return hashString + " " + FAIL + " " + body[1];
+        }
+        return prediction;
     }
-    // Return the percentage change in closing price
-    return finalChange;
-}
-
-// This function analyzes the sentiment of a given article body
-public String getSentiment(String[] body) {
-    // Remove any unwanted characters from the article body
-    String alpha = body[1].replaceAll("\"", "").replaceAll("'", "")
-            .replaceAll(",", "").replaceAll("’", "");
-    // Split the article body into an array of sentences
-    String[] alphaSplit = alpha.split("(?<!\\w\\.\\w.)(?<!([A-Z][a-z])\\{{30,\\}}\\.)(?<=[.?])\\s");
-    // Create a JSON object containing the article sentences and a hash string
-    String hashString = body[0];
-    JsonSend sourceArray = new JsonSend(alphaSplit, hashString);
-    String jString = new Gson().toJson(sourceArray);
-    Log.i("TAG_SetWordCountData_jString:  ", jString);
-    String url = "https://stocks-backend-sentiment-f3jmjyxrpq-uc.a.run.app";
-    String prediction = "";
-    try {
-        // Send a POST request to the sentiment analysis API with the JSON object
-        RequestBody r_body = RequestBody.create(JSON, jString);
-        Request request = new Request.Builder()
-                .url(url)
-                .post(r_body)
-                .build();
-        Log.i("TAG_setWordCount_Request:  ", request.toString());
-        Response response = client.newCall(request).execute();
-        String bodyOfResponse = response.body().string();
-        // Convert the API response to a JSON object and extract the sentiment prediction
-        prediction = convertToList(new Gson().fromJson(bodyOfResponse, JsonReturn.class));
-        response.close();
-    } catch (SocketTimeoutException e) {
-        // Return a failure message if the request times out
-        return hashString + " " + FAIL + " " + body[1];
-    } catch (Exception e) {
-        e.printStackTrace();
-        Log.i("TAG_setWordCount_getSentiment_catch_block  ", "FAIL");
-        // Return a failure message if an exception is caught
-        return hashString + " " + FAIL + " " + body[1];
+    
+    // Convert the sentiment analysis results to a formatted string
+    public String convertToList(JsonReturn prediction) {
+        String[] positive = prediction.getPositive();
+        String[] neutral = prediction.getNeutral();
+        String[] negative = prediction.getNegative();
+        String returnString;
+        if (Integer.parseInt(positive[0]) > Integer.parseInt(neutral[0]) && Integer.parseInt(positive[0]) > Integer.parseInt(negative[0])) {
+            returnString = String.format("Positive %s", positive[1]);
+        } else if (Integer.parseInt(neutral[0]) > Integer.parseInt(negative[0])) {
+            returnString = String.format("Neutral %s", neutral[1]);
+        } else {
+            returnString = String.format("Negative %s", negative[1]);
+        }
+        System.out.println("TAG_setWordCountData_prediction: " + returnString);
+        return prediction.getHash() + " " + returnString;
     }
-    // Return the sentiment prediction
-    return prediction;
-}
-
-// This function converts the sentiment prediction JSON object into a string
-public String convertToList(JsonReturn prediction) {
-    // Extract the count and label of positive, neutral, and negative sentiments
-    String[] positive = prediction.getPositive();
-    String[] neutral = prediction.getNeutral();
-    String[] negative = prediction.getNegative();
-    String returnString;
-    // Determine the overall sentiment based on the counts of positive, neutral, and negative sentiments
-    if (Integer.parseInt(positive[0]) > Integer.parseInt(neutral[0]) && Integer.parseInt(positive[0]) > Integer.parseInt(negative[0])) {
-        returnString = String.format("Positive %s", positive[1]);
-    } else if (Integer.parseInt(neutral[0]) > Integer.parseInt(negative[0])) {
-        returnString = String.format("Neutral %s", neutral[1]);
-    } else {
-        returnString = String.format("Negative %s", negative[1]);
-    }
-    Log.i("TAG_setWordCountData_prediction:   ", returnString);
-    // Return the sentiment prediction as a string
-    return prediction.getHash() + " " + returnString;
-}
+    
 
     int[] positive_word_ids = {
             R.array.positive_words_a,
