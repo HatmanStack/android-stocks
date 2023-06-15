@@ -22,60 +22,73 @@ public class SetNewsData {
 
     public List<NewsDetails> setNewsData(String ticker, List<StockDetails> list) {
 
+        // Get news stories for the given ticker
         List<NewsDetails> newsStories = stockDao.getNewsDetails(ticker);
-        String mostRecentDate = "";
-        LocalDate mD = null;
-        if (!newsStories.isEmpty()) {
-            mostRecentDate = newsStories.get(0).getDate();
-            mD = LocalDate.parse(mostRecentDate);
-        }
-        NewsDetails deets = new NewsDetails(" ", " ", " ", " ", " ");
+
+        // Get the most recent date from the news stories
+        LocalDate mostRecentDate = newsStories.isEmpty() ? null : LocalDate.parse(newsStories.get(0).getDate());
+
+        // Create a new NewsDetails object to store the details of each news story
+        NewsDetails deets = new NewsDetails();
+
         try {
-            String string = "https://www.marketwatch.com/investing/stock/" + ticker + "?mod=quote_search";
-            Request request = new Request.Builder()
-                    .url(string)
-                    .get()
-                    .build();
-            Response response = client.newCall(request).execute();
-            Document doc = Jsoup.parse(Objects.requireNonNull(response.body()).string());
+            // Build the URL for the ticker on MarketWatch
+            String url = "https://www.marketwatch.com/investing/stock/" + ticker + "?mod=quote_search";
+
+            // Send a GET request to the URL and parse the response using Jsoup
+            Document doc = Jsoup.connect(url).get();
+
+            // Get all the article content elements from the page
             Elements elements = doc.getElementsByClass("article__content");
-            List<String> dates = new ArrayList<>();
-            for(StockDetails date: list){
-                dates.add(date.getDate());
-            }
-            for (int i = 0; i < elements.size(); i++) {
-                Element element = elements.get(i);
-                if(!element.hasText()){
+
+            // Get a list of all the dates in the given list of stock details
+            List<String> dates = list.stream().map(StockDetails::getDate).collect(Collectors.toList());
+
+            // Loop through each article content element
+            for (Element element : elements) {
+
+                // Skip the element if it doesn't have any text
+                if (!element.hasText()) {
                     continue;
-                }
-                String title = element.getElementsByClass("link").text();
-                String address = element.getElementsByClass("link").attr("href");
-                String articleD = element.getElementsByClass("article__timestamp").text();
-                String articleDate = element.getElementsByClass("article__timestamp").attr("data-est").substring(0,10);
-                LocalDate aD = LocalDate.parse(articleDate);
-                if(!address.contains("marketwatch.com")){
-                    continue;
-                }
-                if(mostRecentDate.length() != 0){
-                    if(aD.isEqual(mD) || aD.isBefore(mD)) {
-                        continue;
-                    }
                 }
 
-                if(dates.contains(articleDate)) {
-                    deets.setAddress(address);
-                    deets.setTitle(title);
-                    deets.setDate(articleDate);
-                    deets.setArticleDate(articleD);
-                    deets.setNewsTicker(ticker);
-                    stockDao.insertNewsContent(deets);
+                // Get the title, address, and article date from the element
+                String title = element.getElementsByClass("link").text();
+                String address = element.getElementsByClass("link").attr("href");
+                String articleDate = element.getElementsByClass("article__timestamp").attr("data-est").substring(0, 10);
+
+                // Parse the article date into a LocalDate object
+                LocalDate aD = LocalDate.parse(articleDate);
+
+                // Skip the element if the address doesn't contain "marketwatch.com"
+                if (!address.contains("marketwatch.com")) {
+                    continue;
                 }
+
+                // Skip the element if its article date is on or before the most recent date
+                if (mostRecentDate != null && (aD.isEqual(mostRecentDate) || aD.isBefore(mostRecentDate))) {
+                    continue;
+                }
+
+                // Skip the element if its article date is not in the given list of dates
+                if (!dates.contains(articleDate)) {
+                    continue;
+                }
+
+                // Set the details of the NewsDetails object and insert it into the database
+                deets.setAddress(address);
+                deets.setTitle(title);
+                deets.setDate(articleDate);
+                deets.setArticleDate(element.getElementsByClass("article__timestamp").text());
+                deets.setNewsTicker(ticker);
+                stockDao.insertNewsContent(deets);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        newsStories = stockDao.getNewsDetails(ticker);
-        return newsStories;
+
+        // Get the updated news stories from the database and return them
+        return stockDao.getNewsDetails(ticker);
     }
 }
 
