@@ -35,56 +35,64 @@ public class StockRecycler extends RecyclerView.Adapter<StockRecycler.StockVH> {
 
     @Override
     public void onBindViewHolder(@NonNull StockVH holder, int position) {
-        int gain = 1;
-        if(position == stockList.size() - 1) {
-            gain = 0;
-        }
-        String dateString = stockList.get(position).getDate();
+        int gain = (position == stockList.size() - 1) ? 0 : 1;
+        StockDetails stock = stockList.get(position);
+        String dateString = stock.getDate();
+        
+        // Set normalized date string
         holder.date.setText(normalizeDate(dateString.substring(5)));
+        
         if (position < stockList.size()) {
-            if (stockList.get(position).getClose() > stockList.get(position + gain).getClose()) {
-                holder.close.setTextColor(mContext.getColor(R.color.green));
-            } else {
-                holder.close.setTextColor(mContext.getColor(R.color.red));
-            }
-            if (stockList.get(position).getOpen() > stockList.get(position + gain).getOpen()) {
-                holder.open.setTextColor(mContext.getColor(R.color.green));
-            } else {
-                holder.open.setTextColor(mContext.getColor(R.color.red));
-            }
+            // Set text color based on close and open values comparison
+            holder.close.setTextColor(getTextColor(stock.getClose(), stockList.get(position + gain).getClose()));
+            holder.open.setTextColor(getTextColor(stock.getOpen(), stockList.get(position + gain).getOpen()));
         }
-        holder.close.setText(normalize(stockList.get(position).getClose()));
-        holder.open.setText(normalize(stockList.get(position).getOpen()));
-        holder.volume.setText(String.valueOf(stockList.get(position).getVolume()));
+        
+        holder.close.setText(normalize(stock.getClose()));
+        holder.open.setText(normalize(stock.getOpen()));
+        holder.volume.setText(String.valueOf(stock.getVolume()));
     }
-
-    public String normalize(double number){
+    
+    private int getTextColor(double currentValue, double nextValue) {
+        // Return color based on value comparison
+        return (currentValue > nextValue) ? mContext.getColor(R.color.green) : mContext.getColor(R.color.red);
+    }
+    
+    public String normalize(double number) {
         String string = String.valueOf(number);
         String[] splitString = string.split("\\.");
-        if(splitString[1].length() == 1){
+        
+        // Append trailing zero if necessary
+        if (splitString[1].length() == 1) {
             string = string + "0";
         }
+        
         return string;
     }
-
-    public String normalizeDate(String string){
+    
+    public String normalizeDate(String string) {
         String[] splitString = string.split("");
-        if(splitString[3].equals("0")){
-            string = string.substring(0,3) + string.substring(4);
+        
+        // Remove leading zero from month if present
+        if (splitString[3].equals("0")) {
+            string = string.substring(0, 3) + string.substring(4);
         }
-        if(splitString[0].equals("0")){
+        
+        // Remove leading zero from day if present
+        if (splitString[0].equals("0")) {
             string = string.substring(1);
         }
+        
         return string;
     }
-
-    public void setPrice(List<StockDetails> list){
-        if(list != null){
+    
+    public void setPrice(List<StockDetails> list) {
+        if (list != null) {
             stockList = list;
-            Log.i("TAG", "NOTIFYDATASETCHANGED");
             notifyDataSetChanged();
         }
     }
+    
 
     @Override
     public int getItemCount() {

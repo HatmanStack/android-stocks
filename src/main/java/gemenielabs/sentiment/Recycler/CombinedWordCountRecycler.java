@@ -46,111 +46,161 @@ public class CombinedWordCountRecycler extends RecyclerView.Adapter<CombinedWord
 
     @Override
     public void onBindViewHolder(@NonNull StockVH holder, int position) {
-        if(wordCountDetailsList.size() > 0) {
-            if(wordCountDetailsList.get(position).getSentiment().equals("No News Data")){
-                holder.open.setText(wordCountDetailsList.get(position).getSentiment());
-                holder.date.setVisibility(View.GONE);
-                holder.high.setVisibility(View.GONE);
-                holder.low.setVisibility(View.GONE);
-                holder.close.setVisibility(View.GONE);
-                holder.bar.setVisibility(View.GONE);
-            }
-            TextView[] textViews = new TextView[]{holder.high,holder.low,holder.close};
-            holder.date.setText(normalizeDate(wordCountDetailsList.get(position).getDate().substring(5)));
-
-            String sent = wordCountDetailsList.get(position).getSentiment();
-            if(sent.equals("POS")){
-                holder.open.setTextColor(mContext.getColor(R.color.green));
-            }else if (sent.equals("NEUT")){
-                holder.open.setTextColor(mContext.getColor(R.color.yellow));
+        if (wordCountDetailsList.size() > 0) {
+            WordCountDetails details = wordCountDetailsList.get(position);
+            
+            // Check if sentiment is "No News Data"
+            if (details.getSentiment().equals("No News Data")) {
+                // Set views to be hidden
+                setViewsVisibility(holder, View.GONE);
+                holder.open.setText(details.getSentiment());
             } else {
-                holder.open.setTextColor(mContext.getColor(R.color.red));
-            }
-            holder.open.setText(wordCountDetailsList.get(position).getSentiment());
-
-            double nextDay = wordCountDetailsList.get(position).getNextDay();
-            double twoWks = wordCountDetailsList.get(position).getTwoWks();
-            double oneMnth = wordCountDetailsList.get(position).getOneMnth();
-            double[] doubles = new double[]{nextDay, twoWks, oneMnth};
-            int plusDays = 0;
-            for(int i = 0;i< 3;i++) {
-                String nextString = String.format(Locale.US, "%,.2f", doubles[i]*100) + "%";
-                if(doubles[i] == 0.0) {
-                    if (i == 1) {
-                        plusDays = 14;
-                    } else if (i == 2) {
-                        plusDays = 28;
-                    }
-                    if(!createPercentageGainLoss(wordCountDetailsList.get(0).getTicker(),
-                            wordCountDetailsList.get(position).getDate(), plusDays)){
-                        TypedValue value = new TypedValue();
-                        mContext.getTheme().resolveAttribute(android.R.attr.textColorPrimary, value, true);
-                        textViews[i].setTextColor(ContextCompat.getColor(mContext, value.resourceId));
-                        nextString = "N/A";
-                    }
-                }
-                if (nextString.charAt(0) == '-') {
-                    textViews[i].setTextColor(mContext.getColor(R.color.red));
-                    nextString = nextString.substring(1);
-                } else if (!nextString.equals("N/A")) {
-                    textViews[i].setTextColor(mContext.getColor(R.color.green));
-                }
-                textViews[i].setText(nextString);
+                // Set views to be visible
+                setViewsVisibility(holder, View.VISIBLE);
+                
+                // Set sentiment text and color
+                setSentimentText(holder, details);
+                
+                // Set date text
+                holder.date.setText(normalizeDate(details.getDate().substring(5)));
+                
+                // Set percentage values and text color
+                setPercentageValues(holder, details);
             }
         }
     }
-
-    public void setWordCountDetailsList(List<CombinedWordDetails> list){
-        if(list != null){
+    
+    // Helper method to set the visibility of multiple views
+    private void setViewsVisibility(StockVH holder, int visibility) {
+        holder.date.setVisibility(visibility);
+        holder.high.setVisibility(visibility);
+        holder.low.setVisibility(visibility);
+        holder.close.setVisibility(visibility);
+        holder.bar.setVisibility(visibility);
+    }
+    
+    // Helper method to set sentiment text and color
+    private void setSentimentText(StockVH holder, WordCountDetails details) {
+        holder.open.setText(details.getSentiment());
+        
+        String sentiment = details.getSentiment();
+        int colorResId;
+        
+        if (sentiment.equals("POS")) {
+            colorResId = R.color.green;
+        } else if (sentiment.equals("NEUT")) {
+            colorResId = R.color.yellow;
+        } else {
+            colorResId = R.color.red;
+        }
+        
+        holder.open.setTextColor(mContext.getColor(colorResId));
+    }
+    
+    // Helper method to set percentage values and text color
+    private void setPercentageValues(StockVH holder, WordCountDetails details) {
+        double[] values = {details.getNextDay(), details.getTwoWks(), details.getOneMnth()};
+        TextView[] textViews = {holder.high, holder.low, holder.close};
+        
+        for (int i = 0; i < 3; i++) {
+            double value = values[i];
+            String nextString = String.format(Locale.US, "%,.2f", value * 100) + "%";
+            
+            if (value == 0.0) {
+                int plusDays = getPlusDays(i);
+                
+                if (!createPercentageGainLoss(wordCountDetailsList.get(0).getTicker(),
+                        details.getDate(), plusDays)) {
+                    TypedValue typedValue = new TypedValue();
+                    mContext.getTheme().resolveAttribute(android.R.attr.textColorPrimary, typedValue, true);
+                    textViews[i].setTextColor(ContextCompat.getColor(mContext, typedValue.resourceId));
+                    nextString = "N/A";
+                }
+            }
+            
+            if (nextString.charAt(0) == '-') {
+                textViews[i].setTextColor(mContext.getColor(R.color.red));
+                nextString = nextString.substring(1);
+            } else if (!nextString.equals("N/A")) {
+                textViews[i].setTextColor(mContext.getColor(R.color.green));
+            }
+            
+            textViews[i].setText(nextString);
+        }
+    }
+    
+    // Helper method to determine the number of plus days based on the index
+    private int getPlusDays(int index) {
+        int plusDays = 0;
+        
+        if (index == 1) {
+            plusDays = 14;
+        } else if (index == 2) {
+            plusDays = 28;
+        }
+        
+        return plusDays;
+    }
+    
+    public void setWordCountDetailsList(List<CombinedWordDetails> list) {
+        if (list != null) {
             wordCountDetailsList = list;
             notifyDataSetChanged();
         }
     }
-
+    
     public boolean createPercentageGainLoss(String ticker, String date, int time) {
         LocalDate dateGain = LocalDate.parse(date);
         final LocalDate finalDateGain = dateGain.plusDays(time);
         isReal = false;
-        if(finalDateGain.isBefore(LocalDate.now())) {
-            Executors.newSingleThreadExecutor().execute(new Runnable() {
-                @Override
-                public void run() {
-                    LocalDate verbose = finalDateGain;
-                    for (int j = 0; j < 5; j++) {
-                        verbose = verbose.plusDays(1);
-                        if (stockDao.getSingleStock(ticker, verbose.toString()) != null) {
-                            isReal = true;
-                            break;
-                        }else if(j == 4){
-                            verbose = LocalDate.parse(date);
-                        }
+        
+        if (finalDateGain.isBefore(LocalDate.now())) {
+            Executors.newSingleThreadExecutor().execute(() -> {
+                LocalDate verbose = finalDateGain;
+                
+                for (int j = 0; j < 5; j++) {
+                    verbose = verbose.plusDays(1);
+                    
+                    if (stockDao.getSingleStock(ticker, verbose.toString()) != null) {
+                        isReal = true;
+                        break;
+                    } else if (j == 4) {
+                        verbose = LocalDate.parse(date);
                     }
-                    double change = stockDao.getSingleStock(ticker, verbose.toString()).getClose() -
-                            stockDao.getSingleStock(ticker, date).getClose();
-                    double finalChange = change / stockDao.getSingleStock(ticker, verbose.toString()).getClose();
-                    CombinedWordDetails combinedWordDetails = stockDao.getCombinedWordDetailsDate(ticker, date);
-                    if (time == 0) {
-                        combinedWordDetails.setNextDay(finalChange);
-                    } else if (time == 14) {
-                        combinedWordDetails.setTwoWks(finalChange);
-                    } else if (time == 28) {
-                        combinedWordDetails.setOneMnth(finalChange);
-                    }
-                    stockDao.insertCombinedWordDetails(combinedWordDetails);
                 }
+                
+                Stock stock = stockDao.getSingleStock(ticker, verbose.toString());
+                double change = stock.getClose() - stockDao.getSingleStock(ticker, date).getClose();
+                double finalChange = change / stock.getClose();
+                
+                CombinedWordDetails combinedWordDetails = stockDao.getCombinedWordDetailsDate(ticker, date);
+                
+                if (time == 0) {
+                    combinedWordDetails.setNextDay(finalChange);
+                } else if (time == 14) {
+                    combinedWordDetails.setTwoWks(finalChange);
+                } else if (time == 28) {
+                    combinedWordDetails.setOneMnth(finalChange);
+                }
+                
+                stockDao.insertCombinedWordDetails(combinedWordDetails);
             });
         }
+        
         return isReal;
     }
-
-    public String normalizeDate(String string){
+    
+    public String normalizeDate(String string) {
         String[] splitString = string.split("");
-        if(splitString[3].equals("0")){
-            string = string.substring(0,3) + string.substring(4);
+        
+        if (splitString[3].equals("0")) {
+            string = string.substring(0, 3) + string.substring(4);
         }
-        if(splitString[0].equals("0")){
+        
+        if (splitString[0].equals("0")) {
             string = string.substring(1);
         }
+        
         return string;
     }
 

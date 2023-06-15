@@ -35,27 +35,37 @@ public class PortfolioRecycler extends RecyclerView.Adapter<PortfolioRecycler.St
 
 
     @Override
-    public void onBindViewHolder(@NonNull StockVH holder, int position) {
-        holder.name.setText(portfolioList.get(position).getName());
-        holder.tick.setText(portfolioList.get(position).getTicker());
-        TextView[] textView = new TextView[]{holder.next, holder.wks, holder.mnth};
-        String[] data = new String[]{portfolioList.get(position).getNext(), portfolioList.get(position).getWks(),
-                                    portfolioList.get(position).getMnth()};
-        for(int i = 0; i<textView.length;i++){
-            String[] holderData = data[i].split(" ");
-
-            String score = holderData[0] + "0000";
-            if(holderData[0].length() > 1) {
-                if (holderData[1].equals("1")) {
-                    textView[i].setTextColor(mContext.getColor(R.color.green));
-                } else {
-                    textView[i].setTextColor(mContext.getColor(R.color.red));
-                }
-                String setString = score.substring(2, 4) + "." + score.substring(4, 6) + "%";
-                textView[i].setText(setString);
+public void onBindViewHolder(@NonNull StockVH holder, int position) {
+    PortfolioItem item = portfolioList.get(position);
+    
+    // Set name and ticker text
+    holder.name.setText(item.getName());
+    holder.tick.setText(item.getTicker());
+    
+    TextView[] textViews = {holder.next, holder.wks, holder.mnth};
+    String[] data = {item.getNext(), item.getWks(), item.getMnth()};
+    
+    for (int i = 0; i < textViews.length; i++) {
+        String[] holderData = data[i].split(" ");
+        String score = holderData[0] + "0000";
+        
+        // Check if score length is greater than 1
+        if (holderData[0].length() > 1) {
+            if (holderData[1].equals("1")) {
+                // Set text color to green
+                textViews[i].setTextColor(mContext.getColor(R.color.green));
+            } else {
+                // Set text color to red
+                textViews[i].setTextColor(mContext.getColor(R.color.red));
             }
+            
+            // Set formatted score string
+            String setString = score.substring(2, 4) + "." + score.substring(4, 6) + "%";
+            textViews[i].setText(setString);
         }
     }
+}
+
 
     public void setPortfolioList(List<PortfolioDetails> list) {
         if (list != null) {

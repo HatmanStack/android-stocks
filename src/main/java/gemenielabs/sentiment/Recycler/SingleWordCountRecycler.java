@@ -45,112 +45,129 @@ public class SingleWordCountRecycler extends RecyclerView.Adapter<SingleWordCoun
 
     @Override
     public void onBindViewHolder(@NonNull StockVH holder, int position) {
-        if(wordCountDetailsList.size() > 0) {
-            holder.date.setText(normalizeDate(wordCountDetailsList.get(position).getDate().substring(5)));
-            holder.open.setText(String.valueOf(wordCountDetailsList.get(position).getPositive()));
-            holder.high.setText(String.valueOf(wordCountDetailsList.get(position).getNegative()));
+        // Check if wordCountDetailsList has elements
+        if (!wordCountDetailsList.isEmpty()) {
+            WordCountDetails details = wordCountDetailsList.get(position);
+            
+            // Set date and open values
+            holder.date.setText(normalizeDate(details.getDate().substring(5)));
+            holder.open.setText(String.valueOf(details.getPositive()));
+            holder.high.setText(String.valueOf(details.getNegative()));
+            
+            // Determine sentiment and set text color accordingly
+            String sentiment = details.getSentiment();
             String holderText = "";
-            String sentiment = wordCountDetailsList.get(position).getSentiment();
-
-            if(sentiment.equals("Positive")){
+            int textColor = R.color.green;
+            
+            if (sentiment.equals("Positive")) {
                 holderText = "POS";
-                holder.low.setTextColor(mContext.getColor(R.color.green));
-            }else if(sentiment.equals("Neutral")) {
+            } else if (sentiment.equals("Neutral")) {
                 holderText = "NEUT";
-                holder.low.setTextColor(mContext.getColor(R.color.yellow));
-            }else if(sentiment.equals("No News Data")){
-                holderText = wordCountDetailsList.get(position).getSentiment();
-                holder.low.setTextColor(mContext.getColor(R.color.red));
+                textColor = R.color.yellow;
+            } else if (sentiment.equals("No News Data")) {
+                holderText = details.getSentiment();
+                textColor = R.color.red;
+                
+                // Hide views for "No News Data" sentiment
                 holder.date.setVisibility(View.GONE);
                 holder.high.setVisibility(View.GONE);
                 holder.open.setVisibility(View.GONE);
                 holder.close.setVisibility(View.GONE);
                 holder.bar.setVisibility(View.GONE);
-            }else {
+            } else {
                 holderText = "NEG";
-                holder.low.setTextColor(mContext.getColor(R.color.red));
+                textColor = R.color.red;
             }
-
-            double nextDouble = wordCountDetailsList.get(position).getNextDay();
-
-
-            String nextString = String.format(Locale.US, "%,.2f", nextDouble*100) + "%";
-            if(nextDouble == 0.0){
-                if(!createPercentageGainLoss(wordCountDetailsList.get(0).getTicker(),
-                        wordCountDetailsList.get(position).getDate(),0)){
+            
+            holder.low.setText(holderText);
+            holder.low.setTextColor(mContext.getColor(textColor));
+            
+            double nextDouble = details.getNextDay();
+            String nextString = String.format(Locale.US, "%,.2f", nextDouble * 100) + "%";
+            
+            if (nextDouble == 0.0) {
+                if (!createPercentageGainLoss(wordCountDetailsList.get(0).getTicker(),
+                        details.getDate(), 0)) {
+                    // Set text color based on system attribute
                     TypedValue value = new TypedValue();
                     mContext.getTheme().resolveAttribute(android.R.attr.textColorPrimary, value, true);
                     holder.close.setTextColor(ContextCompat.getColor(mContext, value.resourceId));
                     nextString = "N/A";
                 }
             }
-            if(!nextString.equals("N/A")) {
+            
+            if (!nextString.equals("N/A")) {
                 if (nextString.charAt(0) == '-') {
-                    holder.close.setTextColor(mContext.getColor(R.color.red));
+                    textColor = R.color.red;
                     nextString = nextString.substring(1);
-                } else {
-                    holder.close.setTextColor(mContext.getColor(R.color.green));
                 }
-
+                holder.close.setTextColor(mContext.getColor(textColor));
             }
-            holder.low.setText(holderText);
+            
             holder.close.setText(nextString);
         }
     }
-
-    public void setSingleWordCountDetailsList(List<WordCountDetails> list){
-        if(list != null){
+    
+    public void setSingleWordCountDetailsList(List<WordCountDetails> list) {
+        if (list != null) {
             wordCountDetailsList = list;
             notifyDataSetChanged();
         }
     }
-
+    
     public boolean createPercentageGainLoss(String ticker, String date, int time) {
         final LocalDate dateGain = LocalDate.parse(date);
         isReal = false;
-        if(dateGain.isBefore(LocalDate.now())) {
-            Executors.newSingleThreadExecutor().execute(new Runnable() {
-                @Override
-                public void run() {
-                    LocalDate verbose = dateGain;
-                    for (int j = 0; j < 5; j++) {
-                        verbose = verbose.plusDays(1);
-                        if (stockDao.getSingleStock(ticker, verbose.toString()) != null) {
-                            isReal = true;
-                            break;
-                        } else if (j == 4) {
-                            verbose = LocalDate.parse(date);
-                        }
+        
+        if (dateGain.isBefore(LocalDate.now())) {
+            Executors.newSingleThreadExecutor().execute(() -> {
+                LocalDate verbose = dateGain;
+                
+                // Check for stock data on subsequent days
+                for (int j = 0; j < 5; j++) {
+                    verbose = verbose.plusDays(1);
+                    
+                    if (stockDao.getSingleStock(ticker, verbose.toString()) != null) {
+                        isReal = true;
+                        break;
+                    } else if (j == 4) {
+                        verbose = LocalDate.parse(date);
                     }
-
-                    double change = stockDao.getSingleStock(ticker, verbose.toString()).getClose() -
-                            stockDao.getSingleStock(ticker, date).getClose();
-                    double finalChange = change / stockDao.getSingleStock(ticker, verbose.toString()).getClose();
-
-                    List<WordCountDetails> wordCountDetails = stockDao.getWordCountDetailsDate(ticker, date);
-                    for (WordCountDetails wordCountDetails1 : wordCountDetails) {
-
-                        wordCountDetails1.setNextDay(finalChange);
-                        stockDao.insertWordCountContent(wordCountDetails1);
-                    }
-
+                }
+                
+                // Calculate percentage change
+                double change = stockDao.getSingleStock(ticker, verbose.toString()).getClose() -
+                        stockDao.getSingleStock(ticker, date).getClose();
+                double finalChange = change / stockDao.getSingleStock(ticker, verbose.toString()).getClose();
+                
+                // Update WordCountDetails with nextDay value
+                List<WordCountDetails> wordCountDetails = stockDao.getWordCountDetailsDate(ticker, date);
+                for (WordCountDetails wordCountDetails1 : wordCountDetails) {
+                    wordCountDetails1.setNextDay(finalChange);
+                    stockDao.insertWordCountContent(wordCountDetails1);
                 }
             });
-        }return isReal;
-
-    }
-
-
-    public String normalizeDate(String string){
-        String[] splitString = string.split("");
-        if(splitString[3].equals("0")){
-            string = string.substring(0,3) + string.substring(4);
         }
-        if(splitString[0].equals("0")){
+        
+        return isReal;
+    }
+    
+    public String normalizeDate(String string) {
+        String[] splitString = string.split("");
+        
+        // Remove leading zero from month if present
+        if (splitString[3].equals("0")) {
+            string = string.substring(0, 3) + string.substring(4);
+        }
+        
+        // Remove leading zero from day if present
+        if (splitString[0].equals("0")) {
             string = string.substring(1);
         }
+        
         return string;
     }
+    
 
 
     @Override

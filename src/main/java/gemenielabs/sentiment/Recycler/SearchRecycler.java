@@ -17,44 +17,48 @@ public class SearchRecycler extends RecyclerView.Adapter<SearchRecycler.StockVH>
 
 
     private ArrayList<String[]> searchList;
-    private final searchClickListener msearchClickListener;
+private final SearchClickListener mSearchClickListener;
 
-    public SearchRecycler(searchClickListener listener) {
-        msearchClickListener = listener;
+public SearchRecycler(SearchClickListener listener) {
+    mSearchClickListener = listener;
+}
+
+@NonNull
+@Override
+public StockVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.search_recycler, parent, false);
+    return new StockVH(view);
+}
+
+@Override
+public void onBindViewHolder(@NonNull StockVH holder, int position) {
+    String titleString = searchList.get(position)[0];
+    
+    // Truncate titleString if its length is greater than 25
+    if (titleString.length() > 25) {
+        titleString = titleString.substring(0, 25);
     }
+    
+    holder.name.setText(titleString);
+    holder.ticker.setText(searchList.get(position)[1]);
+}
 
-    @NonNull
-    @Override
-    public SearchRecycler.StockVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.search_recycler, parent, false);
-        return new SearchRecycler.StockVH(view);
+public interface SearchClickListener {
+    void onSearchItemClicked(String name, String ticker);
+}
+
+public void setSearchList(ArrayList<String[]> list, boolean clearList) {
+    if (clearList) {
+        searchList.clear();
     }
-
-    @Override
-    public void onBindViewHolder(@NonNull StockVH holder, int position) {
-        String titleString = searchList.get(position)[0];
-        if(titleString.length() > 25){
-            titleString = titleString.substring(0,25);
-        }
-        holder.name.setText(titleString);
-        holder.ticker.setText(searchList.get(position)[1]);
+    
+    // Set searchList only if it's not null
+    if (list != null) {
+        searchList = list;
     }
-
-
-    public interface searchClickListener {
-        void onSearchItemClicked(String name, String ticker);
-    }
-
-    public void setSearchList(ArrayList<String[]> list, boolean clearList){
-        if(clearList){
-            searchList.clear();
-        }else {
-            if (list != null) {
-                searchList = list;
-            }
-        }
-        notifyDataSetChanged();
-    }
+    
+    notifyDataSetChanged();
+}
 
     @Override
     public int getItemCount() {
