@@ -1,6 +1,6 @@
 # Stocks
 
-Stocks is an app that analyzes news articles to predict stock market movements across different time frames. By employing techniques like bag-of-words and natural language processing (NLP), it assesses the sentiment conveyed in the articles. This app takes into consideration various factors, including price and volume, and employs multivariate logistic regression to make predictions. To ensure efficient performance, Stocks leverages serverless microservices for complex calculations.
+Stocks is an app that analyzes news articles to predict stock market movements across different time frames. By employing techniques like bag-of-words and natural language processing (NLP), it assesses the sentiment conveyed in the articles. This app uses multivariate logistic regression to make predictions based on a variety of factors, such as price and volume. Stocks uses serverless microservices to perform complex calculations quickly and efficiently.
 
 ## Demo
 
@@ -17,11 +17,11 @@ Click [here](https://www.youtube.com/watch?v=HYekJElfHBM) to access the Youtube 
 
 ## Technologies
 
-- Android SDK
-- Android JetPack
-- [Tiingo](https://www.tiingo.com/) API for Stock Data
-- Sentiment Analysis [microservice](https://github.com/HatmanStack/python-sentiment-analysis)
-- Logistic Regression [microservice](https://github.com/HatmanStack/python-logistic-prediction)
+- 🤖 Android SDK
+- 🚀 Android JetPack
+- 🗠 [Tiingo](https://www.tiingo.com/) API for Stock Data
+- ✨ Sentiment Analysis [microservice](https://github.com/HatmanStack/python-sentiment-analysis)
+- 🏎️ Logistic Regression [microservice](https://github.com/HatmanStack/python-logistic-prediction)
 
 
 ## Screenshots
