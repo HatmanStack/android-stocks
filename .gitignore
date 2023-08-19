@@ -6,6 +6,5 @@ app/venv/
 app/src/main/res/values/secrets.xml
 local.properties
 Play_Store/
-pics/
 .gradle/
 .idea/
