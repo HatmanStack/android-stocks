@@ -1,6 +1,6 @@
 # Stocks
 
-Stocks is an app that analyzes news articles to predict stock market movements. It uses natural language processing techniques like bag-of-words to assess sentiment in articles from MarketWatch. The app could be expanded to include other news sources as well. 
+Stocks is an app that analyzes news articles to predict stock market movements. It uses natural language processing techniques like bag-of-words and <b>FinBERT</b> to assess sentiment in news articles. The app can be expanded to include other news sources as well. 
 
 Stocks makes predictions using multivariate logistic regression based on factors such as price, volume, word choice, and sentiment. To enable fast computation, it employs a serverless microservices architecture. By default, Stocks processes one year of historical pricing and volume data. However, the analysis timeframe can be customized on the welcome page calendar. 
 
@@ -13,7 +13,7 @@ Click [here](https://www.youtube.com/watch?v=HYekJElfHBM) to access the Youtube 
 ## Features
 
 <ul>
-<li>Sentiment Analysis: The app performs sentiment analysis on news articles using a custom bag-of-words strategy and NLP techniques. It determines the sentiment (positive, negative, or neutral) associated with the news article.</li>
+<li>Sentiment Analysis: The app performs sentiment analysis on news articles using a custom bag-of-words strategy and <b>FinBERT</b>. It determines the sentiment (positive, negative, or neutral) associated with the news article.</li>
 <li>Multivariate Logistic Regression: The app combines sentiment analysis results with other metrics, such as price and volume, to perform multivariate logistic regression. This regression model helps forecast market movements over varied time frames.</li>
 <li>Market Forecast: Based on the results of the multivariate logistic regression, the app provides forecasts for market movements. These forecasts can assist users in making informed investment decisions.</li>
 <li>Off-Device Calculations: All the complex calculations required for sentiment analysis and multivariate logistic regression are performed off-device. This ensures that the app remains fast and responsive, as the heavy computational tasks are handled by serverless microservices.</li>
@@ -26,7 +26,6 @@ Click [here](https://www.youtube.com/watch?v=HYekJElfHBM) to access the Youtube 
 - 🗠 [Tiingo](https://www.tiingo.com/) API for Stock Data <b>Create string "api_key" in res values and insert your own Tiingo api key</b>
 - ✨ Sentiment Analysis [microservice](https://github.com/HatmanStack/python-sentiment-analysis)
 - 🏎️ Logistic Regression [microservice](https://github.com/HatmanStack/python-logistic-prediction)
-
 
 ## Screenshots
 
@@ -43,6 +42,19 @@ Click [here](https://www.youtube.com/watch?v=HYekJElfHBM) to access the Youtube 
     <td><img src="https://github.com/HatmanStack/android-stocks/blob/main/pics/sentiment6.png" alt="Image 7"></td>
   </tr>
 </table>
+
+## Building
+
+- Open Android Studio. From the Welcome screen, select Open an existing Android Studio project.
+- From the Open File or Project window that appears, navigate to and select the tensorflow-lite/examples/bert_qa/android directory. Click OK.
+- If it asks you to do a Gradle Sync, click OK.
+- With your Android device/emulator connected to your computer and developer mode enabled, click on the green Run arrow in Android Studio.
+
+## FinBERT Training Data
+
+- Corporate Reports 10-K & 10-Q: 2.5B tokens
+- Earnings Call Transcripts: 1.3B tokens
+- Analyst Reports: 1.1B tokens
 
 ## Acknowledgements
 
