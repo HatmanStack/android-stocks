@@ -12,7 +12,11 @@ import com.google.gson.Gson;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.tensorflow.lite.support.label.Category;
+import org.tensorflow.lite.task.core.BaseOptions;
+import org.tensorflow.lite.task.text.nlclassifier.BertNLClassifier;
 
+import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -89,7 +93,7 @@ public class SetWordCountData {
             // Process the article bodies to get sentiment asynchronously
             for (String key : Hash_Article_Date.keySet()) {
                 String[] bodyWithHash = {key, Hash_Article_Date.get(key)[0]};
-                results.add(CompletableFuture.supplyAsync(() -> getSentiment(bodyWithHash)));
+                results.add(CompletableFuture.supplyAsync(() -> getSentiment(bodyWithHash, context)));
             }
     
             // Wait until all results are processed
@@ -127,6 +131,7 @@ public class SetWordCountData {
         WordCountDetails wordCountDetails = new WordCountDetails(" ", 0, " ",
                 0, 0, 0, 0, 0, "",
                 "", 0);
+
         String[] resultsString = returns.split(" ");
     
         String body = hashArticleDate.get(resultsString[0])[0];
@@ -147,6 +152,8 @@ public class SetWordCountData {
         wordCountDetails.setSentimentNumber(Double.parseDouble(resultsString[2]));
         wordCountDetails.setDate(date.substring(0, 10));
         wordCountDetails.setTicker(ticker);
+        wordCountDetails.setNegative(words[1]);
+        wordCountDetails.setPositive(words[0]);
         wordCountDetails.setHash(Integer.valueOf(resultsString[0]));
         double next = createPercentageGainLoss(ticker, date, 0);
         double wks = createPercentageGainLoss(ticker, date, 14);
@@ -218,6 +225,7 @@ public class SetWordCountData {
                 }
             }
         }
+
         return new int[]{pos, neg};
     }
     
@@ -244,12 +252,31 @@ public class SetWordCountData {
     }
     
     // Get sentiment analysis for the given article body
-    public String getSentiment(String[] body) {
+    public String getSentiment(String[] body, Context context) {
         String alpha = body[1].replaceAll("\"", "").replaceAll("'", "").replaceAll(",", "").replaceAll("’", "");
         String[] alphaSplit = alpha.split("(?<!\\w\\.\\w.)(?<!([A-Z][a-z])\\{30,\\}\\.)(?<=[.?])\\s");
         String hashString = body[0];
         JsonSend sourceArray = new JsonSend(alphaSplit, hashString);
         String jString = new Gson().toJson(sourceArray);
+        /*
+        Log.i("jString", alphaSplit[0]);
+
+        BertNLClassifier.BertNLClassifierOptions options =
+                BertNLClassifier.BertNLClassifierOptions.builder()
+                        .setBaseOptions(BaseOptions.builder().setNumThreads(4).build())
+                        .build();
+        BertNLClassifier classifier =
+                null;
+        try {
+            classifier = BertNLClassifier.createFromFileAndOptions(context, "model.tflite", options);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+        List<Category> results = classifier.classify(alphaSplit[0]);
+        Log.i("Results", String.valueOf(results.get(0)));
+        */
         String url = "https://stocks-backend-sentiment-f3jmjyxrpq-uc.a.run.app";
         String prediction = "";
         try {
@@ -268,7 +295,10 @@ public class SetWordCountData {
             e.printStackTrace();
             return hashString + " " + FAIL + " " + body[1];
         }
+
         return prediction;
+
+
     }
     
     // Convert the sentiment analysis results to a formatted string
