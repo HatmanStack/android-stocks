@@ -14,9 +14,7 @@ import gemenielabs.sentiment.R;
 
 
 public class SearchRecycler extends RecyclerView.Adapter<SearchRecycler.StockVH> {
-
-
-    private ArrayList<String[]> searchList;
+private ArrayList<String[]> searchList;
 private final SearchClickListener mSearchClickListener;
 
 public SearchRecycler(SearchClickListener listener) {
@@ -82,7 +80,7 @@ public void setSearchList(ArrayList<String[]> list, boolean clearList) {
 
         @Override
         public void onClick(View v) {
-            msearchClickListener.onSearchItemClicked((String) name.getText(), (String) ticker.getText());
+            mSearchClickListener.onSearchItemClicked((String) name.getText(), (String) ticker.getText());
         }
     }
 }

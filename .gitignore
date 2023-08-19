@@ -3,3 +3,4 @@ libs/
 release/
 secrets/
 venv/
+src/main/res/values/secrets.xml

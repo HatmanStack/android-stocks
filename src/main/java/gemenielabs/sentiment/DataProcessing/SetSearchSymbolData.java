@@ -3,6 +3,9 @@ package gemenielabs.sentiment.DataProcessing;
 import static gemenielabs.sentiment.Fragments.SearchFragment.client;
 
 
+import android.content.Context;
+
+import gemenielabs.sentiment.R;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -16,10 +19,10 @@ public class SetSearchSymbolData {
     private final OkHttpClient client = new OkHttpClient();
 
     // Refactored method to get search data
-    public ArrayList<String[]> getSearchData(String terms) {
+    public ArrayList<String[]> getSearchData(String terms, Context context) {
         // Build the URL string with the provided search terms and API key
         String url = "https://api.tiingo.com/tiingo/utilities/search?query=" + terms +
-                "&token=<INSERT API KEY HERE>";
+                "&token=" + context.getString(R.string.api_key);
 
         // Create a new Request object with the URL
         Request request = new Request.Builder()

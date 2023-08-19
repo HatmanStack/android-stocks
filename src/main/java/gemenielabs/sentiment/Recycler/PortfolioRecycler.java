@@ -36,14 +36,12 @@ public class PortfolioRecycler extends RecyclerView.Adapter<PortfolioRecycler.St
 
     @Override
 public void onBindViewHolder(@NonNull StockVH holder, int position) {
-    PortfolioItem item = portfolioList.get(position);
-    
-    // Set name and ticker text
-    holder.name.setText(item.getName());
-    holder.tick.setText(item.getTicker());
+    PortfolioDetails singlePortfolio = portfolioList.get(position);
+    holder.name.setText(singlePortfolio.getName());
+    holder.tick.setText(singlePortfolio.getTicker());
     
     TextView[] textViews = {holder.next, holder.wks, holder.mnth};
-    String[] data = {item.getNext(), item.getWks(), item.getMnth()};
+    String[] data = {singlePortfolio.getNext(), singlePortfolio.getWks(), singlePortfolio.getMnth()};
     
     for (int i = 0; i < textViews.length; i++) {
         String[] holderData = data[i].split(" ");

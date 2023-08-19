@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import gemenielabs.sentiment.Room.NewsDetails;
 import gemenielabs.sentiment.Room.StockDetails;
@@ -29,7 +30,7 @@ public class SetNewsData {
         LocalDate mostRecentDate = newsStories.isEmpty() ? null : LocalDate.parse(newsStories.get(0).getDate());
 
         // Create a new NewsDetails object to store the details of each news story
-        NewsDetails deets = new NewsDetails();
+        NewsDetails deets = new NewsDetails(" ", " ", " ", " ", " ");
 
         try {
             // Build the URL for the ticker on MarketWatch

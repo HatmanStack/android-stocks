@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import gemenielabs.sentiment.Helper.JsonReturn;
 import gemenielabs.sentiment.Helper.JsonRow;
@@ -88,7 +89,7 @@ public class SetPortfolioData {
         SetNewsData setNewsData = new SetNewsData();
         SetWordCountData wordCountData = new SetWordCountData();
         SetCombineWordCountData combineWordCountData = new SetCombineWordCountData();
-        List<StockDetails> stockDetails = setStockPriceData.getPriceData(ticker, String.valueOf(LocalDate.now()));
+        List<StockDetails> stockDetails = setStockPriceData.getPriceData(ticker, String.valueOf(LocalDate.now()), context);
         List<WordCountDetails> wordCountDetails = wordCountData.setWordCountData(ticker,
                 setNewsData.setNewsData(ticker, stockDetails), context);
         List<CombinedWordDetails> combinedWordDetails = combineWordCountData.combineDates(wordCountDetails);

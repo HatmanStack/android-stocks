@@ -1,11 +1,17 @@
 package gemenielabs.sentiment.DataProcessing;
 
+import static android.provider.Settings.System.getString;
 import static gemenielabs.sentiment.MainActivity.stockDao;
 
+import android.content.Context;
+import android.util.Log;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+
+import gemenielabs.sentiment.R;
+import gemenielabs.sentiment.Room.StockDetails;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -15,7 +21,7 @@ import java.util.Objects;
 public class SetStockPriceData {
 
     // Refactored getPriceData function
-    public List<StockDetails> getPriceData(String ticker, String startDate) {
+    public List<StockDetails> getPriceData(String ticker, String startDate, Context context) {
         int size = stockDao.getStockDetails(ticker).size();
         if (size > 0) {
             String firstDate = stockDao.getStockDetails(ticker).get(size - 1).getDate();
@@ -25,27 +31,28 @@ public class SetStockPriceData {
                 String lastDate = stockDao.getStockDetails(ticker).get(0).getDate();
                 LocalDate z = LocalDate.parse(lastDate);
                 String plusDay = z.plusDays(1).toString();
-                getTiingoData(ticker, plusDay, "");
+                getTiingoData(ticker, plusDay, "", context);
             }
         } else {
-            getTiingoData(ticker, startDate, "");
+            getTiingoData(ticker, startDate, "", context);
         }
         return stockDao.getStockDetails(ticker);
     }
 
     // Refactored getTiingoData function
-    public void getTiingoData(String ticker, String date, String newDate) {
+    public void getTiingoData(String ticker, String date, String newDate, Context context) {
         try {
             OkHttpClient client = new OkHttpClient();
             String requestString;
             if (newDate.equals("")) {
                 requestString = "https://api.tiingo.com/tiingo/daily/" + ticker +
-                        "/prices?startDate=" + date + "&token=<INSERT API KEY HERE>";
+                        "/prices?startDate=" + date + "&token=" + context.getString(R.string.api_key);
             } else {
                 requestString = "https://api.tiingo.com/tiingo/daily/" + ticker +
-                        "/prices?startDate=" + date + "&endDate=" + newDate +
-                        "&token=<INSERT API KEY HERE>";
+                        "/prices?startDate=" + date + "&endDate=" + newDate + "&token=" + context.getString(R.string.api_key);
+
             }
+
             Request request = new Request.Builder()
                     .url(requestString)
                     .get()

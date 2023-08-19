@@ -105,7 +105,7 @@ public class SetWordCountData {
                 } catch (ExecutionException | InterruptedException e) {
                     e.printStackTrace();
                 }
-                WordCountDetails wordCountDetails = createWordCountDetails(ticker, returns, Hash_Article_Date);
+                WordCountDetails wordCountDetails = createWordCountDetails(ticker, returns, Hash_Article_Date, context);
                 stockDao.insertWordCountContent(wordCountDetails);
             }
         }
@@ -123,7 +123,7 @@ public class SetWordCountData {
     }
     
     // Create WordCountDetails object based on the sentiment analysis results
-    private WordCountDetails createWordCountDetails(String ticker, String returns, HashMap<String, String[]> hashArticleDate) {
+    private WordCountDetails createWordCountDetails(String ticker, String returns, HashMap<String, String[]> hashArticleDate, Context context) {
         WordCountDetails wordCountDetails = new WordCountDetails(" ", 0, " ",
                 0, 0, 0, 0, 0, "",
                 "", 0);
@@ -194,8 +194,8 @@ public class SetWordCountData {
     // Record word counts for positive and negative words in the article body
     public int[] recordWordCounts(Context context, String body) {
         String alphabet = "abcdefghijklmnopqrstuvwxyz";
-        String[] positive;
-        String[] negative;
+        String[] positive = new String[0];
+        String[] negative = new String[0];;
         int pos = 0;
         int neg = 0;
         String[] articleBody = body.split(" ");

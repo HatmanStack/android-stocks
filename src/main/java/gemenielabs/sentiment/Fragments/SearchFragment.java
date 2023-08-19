@@ -1,5 +1,6 @@
 package gemenielabs.sentiment.Fragments;
 
+import android.content.Context;
 import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.util.Log;
@@ -31,7 +32,7 @@ import gemenielabs.sentiment.R;
 import gemenielabs.sentiment.Recycler.SearchRecycler;
 import okhttp3.OkHttpClient;
 
-public class SearchFragment extends Fragment implements SearchRecycler.searchClickListener {
+public class SearchFragment extends Fragment implements SearchRecycler.SearchClickListener {
 
     // Declare variables
     private EditText searchText;
@@ -39,6 +40,7 @@ public class SearchFragment extends Fragment implements SearchRecycler.searchCli
     private SearchRecycler searchRecycler;
     private CalendarView calendarStart;
     public static String holderTicker;
+    private Context context;
     public static OkHttpClient client = new OkHttpClient().newBuilder()
             .readTimeout(45, TimeUnit.SECONDS).build();
 
@@ -51,6 +53,7 @@ public class SearchFragment extends Fragment implements SearchRecycler.searchCli
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+        context = getActivity().getApplicationContext();
         return inflater.inflate(R.layout.search_fragment, container, false);
     }
 
@@ -78,7 +81,7 @@ public class SearchFragment extends Fragment implements SearchRecycler.searchCli
             viewVisibility(view, true);
             Executors.newSingleThreadExecutor().execute(() -> {
                 SetSearchSymbolData setSearchSymbolData = new SetSearchSymbolData();
-                final ArrayList<String[]> list = setSearchSymbolData.getSearchData(searchText.getText().toString());
+                final ArrayList<String[]> list = setSearchSymbolData.getSearchData(searchText.getText().toString(), context);
                 if (getParentFragment().getActivity() != null) {
                     getParentFragment().requireActivity().runOnUiThread(() -> {
                         if (list.size() < 1) {

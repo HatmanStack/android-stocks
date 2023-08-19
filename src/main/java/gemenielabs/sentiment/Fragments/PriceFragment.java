@@ -2,6 +2,7 @@ package gemenielabs.sentiment.Fragments;
 
 import static gemenielabs.sentiment.MainActivity.blockingActionBar;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -27,6 +28,7 @@ import gemenielabs.sentiment.DataProcessing.SetNewsData;
 import gemenielabs.sentiment.DataProcessing.SetStockPriceData;
 import gemenielabs.sentiment.DataProcessing.SetWordCountData;
 import gemenielabs.sentiment.Helper.PriceLiveData;
+import gemenielabs.sentiment.MainActivity;
 import gemenielabs.sentiment.R;
 import gemenielabs.sentiment.Recycler.StockRecycler;
 import gemenielabs.sentiment.Room.CombinedWordDetails;
@@ -46,6 +48,7 @@ public class PriceFragment extends Fragment {
 
     // LiveData object to store stock price data
     private PriceLiveData model;
+    private Context context;
 
     // String to store the current date
     private String currentDate;
@@ -63,6 +66,7 @@ public class PriceFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+        context = getActivity().getApplicationContext();
         return inflater.inflate(R.layout.price_fragment, container, false);
     }
 
@@ -105,9 +109,10 @@ public class PriceFragment extends Fragment {
             public void run() {
                 // Create new SetDailySymbolData, SetStockPriceData, and SetNewsData objects
                 SetDailySymbolData symbolData = new SetDailySymbolData();
-                final SymbolDetails deets = symbolData.setDailySymbolData(args);
+                final SymbolDetails deets = symbolData.setDailySymbolData(args, context);
                 SetStockPriceData data = new SetStockPriceData();
-                final List<StockDetails> stockDetails = data.getPriceData(args, currentDate);
+
+                final List<StockDetails> stockDetails = data.getPriceData(args, currentDate, context);
                 SetNewsData newsData = new SetNewsData();
                 final List<NewsDetails> newsdeets = newsData.setNewsData(args, stockDetails);
 
