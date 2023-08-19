@@ -1,6 +1,10 @@
 # Stocks
 
-Stocks is an app that analyzes news articles to predict stock market movements. It uses natural language processing techniques like bag-of-words to assess sentiment in articles from MarketWatch. The app could be expanded to include other news sources as well. Stocks makes predictions using multivariate logistic regression based on factors such as price, volume, word choice, and sentiment. To enable fast computation, it employs a serverless microservices architecture. By default, Stocks processes one year of historical pricing and volume data. However, the analysis timeframe can be customized on the welcome page calendar. While older news data is cached, only the most recent articles are retrieved for analysis. To ensure news content is weighted appropriately in the predictions, the historical pricing and volume timeframe should match the period covered by the cached articles. Otherwise, with mismatched timeframes, the analysis would rely more heavily on pricing and volume data rather than news content, reducing effectiveness.
+Stocks is an app that analyzes news articles to predict stock market movements. It uses natural language processing techniques like bag-of-words to assess sentiment in articles from MarketWatch. The app could be expanded to include other news sources as well. 
+
+Stocks makes predictions using multivariate logistic regression based on factors such as price, volume, word choice, and sentiment. To enable fast computation, it employs a serverless microservices architecture. By default, Stocks processes one year of historical pricing and volume data. However, the analysis timeframe can be customized on the welcome page calendar. 
+
+While older news data is cached, only the most recent articles are retrieved for analysis. To ensure news content is weighted appropriately in the predictions, the historical pricing and volume timeframe should match the period covered by the cached articles. Otherwise, with mismatched timeframes, the analysis would rely more heavily on pricing and volume data rather than news content, reducing effectiveness.
 
 ## Demo
 
