@@ -6,6 +6,8 @@ Stocks makes predictions using multivariate logistic regression based on factors
 
 While older news data is cached, only the most recent articles are retrieved for analysis. To ensure news content is weighted appropriately in the predictions, the historical pricing and volume timeframe should match the period covered by the cached articles. Otherwise, with mismatched timeframes, the analysis would rely more heavily on pricing and volume data rather than news content.
 
+To improve performance for the Play Store App's microservices, which are configured with minimal memory, a combination of memory allocation increases, standby containers, and enabling GCP's CPU boost feature is recommended.
+
 ## Demo
 
 [Youtube demo](https://www.youtube.com/watch?v=HYekJElfHBM) Download the application from the [Google Play Store](https://play.google.com/store/apps/details?id=gemenielabs.sentiment).
