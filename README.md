@@ -4,11 +4,11 @@ Stocks is an app that analyzes news articles to predict stock market movements. 
 
 Stocks makes predictions using multivariate logistic regression based on factors such as price, volume, word choice, and sentiment. To enable fast computation, it employs a serverless microservices architecture. By default, Stocks processes one year of historical pricing and volume data. However, the analysis timeframe can be customized on the welcome page calendar. 
 
-While older news data is cached, only the most recent articles are retrieved for analysis. To ensure news content is weighted appropriately in the predictions, the historical pricing and volume timeframe should match the period covered by the cached articles. Otherwise, with mismatched timeframes, the analysis would rely more heavily on pricing and volume data rather than news content, reducing effectiveness.
+While older news data is cached, only the most recent articles are retrieved for analysis. To ensure news content is weighted appropriately in the predictions, the historical pricing and volume timeframe should match the period covered by the cached articles. Otherwise, with mismatched timeframes, the analysis would rely more heavily on pricing and volume data rather than news content.
 
 ## Demo
 
-Click [here](https://www.youtube.com/watch?v=HYekJElfHBM) to access the Youtube demo. You can download the application from the Google Play Store by clicking [here](https://play.google.com/store/apps/details?id=gemenielabs.sentiment).
+[Youtube demo](https://www.youtube.com/watch?v=HYekJElfHBM) Download the application from the [Google Play Store](https://play.google.com/store/apps/details?id=gemenielabs.sentiment).
 
 ## Features
 
@@ -23,7 +23,7 @@ Click [here](https://www.youtube.com/watch?v=HYekJElfHBM) to access the Youtube 
 
 - 🤖 Android SDK
 - 🚀 Android JetPack
-- 🗠 [Tiingo](https://www.tiingo.com/) API for Stock Data <b>Create string "api_key" in res values and insert your own Tiingo api key</b>
+- 🗠 [Tiingo](https://www.tiingo.com/) API for Stock Data 
 - ✨ Sentiment Analysis [microservice](https://github.com/HatmanStack/python-sentiment-analysis)
 - 🏎️ Logistic Regression [microservice](https://github.com/HatmanStack/python-logistic-prediction)
 
@@ -48,6 +48,7 @@ Click [here](https://www.youtube.com/watch?v=HYekJElfHBM) to access the Youtube 
 - Open Android Studio. From the Welcome screen, select Open an existing Android Studio project.
 - From the Open File or Project window that appears, navigate to and select the android-stocks directory. Click OK.
 - If it asks you to do a Gradle Sync, click OK.
+- <b>Create string "api_key" in res/values folder and insert your own Tiingo api key</b
 - With your Android device/emulator connected to your computer and developer mode enabled, click on the green Run arrow in Android Studio.
 
 ## FinBERT Training Data
