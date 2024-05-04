@@ -12,9 +12,9 @@ import com.google.gson.Gson;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.tensorflow.lite.support.label.Category;
-import org.tensorflow.lite.task.core.BaseOptions;
-import org.tensorflow.lite.task.text.nlclassifier.BertNLClassifier;
+//import org.tensorflow.lite.support.label.Category;
+//import org.tensorflow.lite.task.core.BaseOptions;
+//import org.tensorflow.lite.task.text.nlclassifier.BertNLClassifier;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;

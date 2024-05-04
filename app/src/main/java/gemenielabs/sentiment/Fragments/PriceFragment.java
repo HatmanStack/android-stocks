@@ -114,7 +114,7 @@ public class PriceFragment extends Fragment {
 
                 final List<StockDetails> stockDetails = data.getPriceData(args, currentDate, context);
                 SetNewsData newsData = new SetNewsData();
-                final List<NewsDetails> newsdeets = newsData.setNewsData(args, stockDetails);
+                final List<NewsDetails> newsdeets = newsData.setNewsData(args, stockDetails, context);
 
                 // Log the size of the newsdeets list
                 Log.i("TAG_Price_Fragment_newsdeets:  ", " " + newsdeets.size());
@@ -156,6 +156,7 @@ public class PriceFragment extends Fragment {
                 // Create new SetWordCountData and SetCombineWordCountData objects
                 SetWordCountData wordCountData = new SetWordCountData();
                 if(getParentFragment() != null) {
+
                     final List<WordCountDetails> words = wordCountData.setWordCountData(args, list,
                             getParentFragment().getActivity());
                     SetCombineWordCountData setCombineWordCountData = new SetCombineWordCountData();

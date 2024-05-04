@@ -10,11 +10,9 @@ import android.util.Log;
 import com.google.gson.Gson;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import gemenielabs.sentiment.Helper.JsonReturn;
@@ -91,7 +89,7 @@ public class SetPortfolioData {
         SetCombineWordCountData combineWordCountData = new SetCombineWordCountData();
         List<StockDetails> stockDetails = setStockPriceData.getPriceData(ticker, String.valueOf(LocalDate.now()), context);
         List<WordCountDetails> wordCountDetails = wordCountData.setWordCountData(ticker,
-                setNewsData.setNewsData(ticker, stockDetails), context);
+                setNewsData.setNewsData(ticker, stockDetails, context), context);
         List<CombinedWordDetails> combinedWordDetails = combineWordCountData.combineDates(wordCountDetails);
 
         // Create arrays for stock data

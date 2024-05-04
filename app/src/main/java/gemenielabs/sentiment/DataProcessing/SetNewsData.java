@@ -1,7 +1,9 @@
 package gemenielabs.sentiment.DataProcessing;
 
-import static gemenielabs.sentiment.Fragments.SearchFragment.client;
 import static gemenielabs.sentiment.MainActivity.stockDao;
+
+import android.content.Context;
+import android.util.Log;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -9,19 +11,24 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
+import gemenielabs.sentiment.R;
 import gemenielabs.sentiment.Room.NewsDetails;
 import gemenielabs.sentiment.Room.StockDetails;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import java.io.IOException;
+
 public class SetNewsData {
 
-    public List<NewsDetails> setNewsData(String ticker, List<StockDetails> list) {
+    public List<NewsDetails> setNewsData(String ticker, List<StockDetails> list, Context context) {
 
         // Get news stories for the given ticker
         List<NewsDetails> newsStories = stockDao.getNewsDetails(ticker);
@@ -32,13 +39,36 @@ public class SetNewsData {
         // Create a new NewsDetails object to store the details of each news story
         NewsDetails deets = new NewsDetails(" ", " ", " ", " ", " ");
 
-        try {
-            // Build the URL for the ticker on MarketWatch
-            String url = "https://www.marketwatch.com/investing/stock/" + ticker + "?mod=quote_search";
+        OkHttpClient client = new OkHttpClient();
 
+        Request request = new Request.Builder()
+                .url("https://api.tiingo.com/tiingo/news?tickers=" + ticker + "&token=" + context.getString(R.string.api_key))
+                .addHeader("Content-Type", "application/json")
+                .build();
+            try (Response response = client.newCall(request).execute()) {
+                Log.i("NEWS", "REQUESTING");
+                if (response.isSuccessful()) {
+                    Log.i("NEWS", "SUCCESS");
+                    String responseBody = String.valueOf(response.body());
+                    //JsonObject jsonObject = JsonParser.parseString(responseBody).getAsJsonObject();
+                    Log.i("NEWS", responseBody);
+                } else {
+                    Log.i("NEWS", "FAIL " + response.code());
+
+                }
+            } catch (IOException e) {
+
+                Log.i("NEWS", String.valueOf(e));
+            }
+        try {
+            // Build the URL for the ticker on MarketWatch (Blocking Requests)
+            //String url = "https://www.marketwatch.com/investing/stock/" + ticker + "?mod=quote_search";
+            // Build the URL for the ticker on Tiingo
+            String url = "https://api.tiingo.com/tiingo/news?tickers=" + ticker + "&token=" + context.getString(R.string.api_key);
+            Log.i("NEWS", "TEST1");
             // Send a GET request to the URL and parse the response using Jsoup
             Document doc = Jsoup.connect(url).get();
-
+            Log.i("NEWS", String.valueOf(doc));
             // Get all the article content elements from the page
             Elements elements = doc.getElementsByClass("article__content");
 
