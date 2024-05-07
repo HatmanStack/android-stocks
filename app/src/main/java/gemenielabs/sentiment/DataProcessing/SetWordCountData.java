@@ -12,9 +12,6 @@ import com.google.gson.Gson;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-//import org.tensorflow.lite.support.label.Category;
-//import org.tensorflow.lite.task.core.BaseOptions;
-//import org.tensorflow.lite.task.text.nlclassifier.BertNLClassifier;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -23,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -51,9 +49,11 @@ public class SetWordCountData {
     
             // Process each news article asynchronously
             for (NewsDetails news : list) {
-                String newsArticleDate = news.getDate();
+                String newsArticleDate = news.getArticleDate();
                 String url = news.getAddress();
-                articles.add(CompletableFuture.supplyAsync(() -> getArticleBody(url, newsArticleDate)));
+                // Fix until newParsing of article Data is ready
+                String articleDescription = news.getArticleDescription();
+                articles.add(CompletableFuture.supplyAsync(() -> getArticleBody(url, newsArticleDate, articleDescription)));
             }
     
             // Wait until all articles are processed
@@ -109,6 +109,10 @@ public class SetWordCountData {
                 } catch (ExecutionException | InterruptedException e) {
                     e.printStackTrace();
                 }
+
+                for (Map.Entry<String, String[]> entry : Hash_Article_Date.entrySet()) {
+                    System.out.println(entry.getKey() + "=" + Arrays.toString(entry.getValue()));
+                }
                 WordCountDetails wordCountDetails = createWordCountDetails(ticker, returns, Hash_Article_Date, context);
                 stockDao.insertWordCountContent(wordCountDetails);
             }
@@ -133,7 +137,7 @@ public class SetWordCountData {
                 "", 0);
 
         String[] resultsString = returns.split(" ");
-    
+        Log.i("TAG", Arrays.toString(resultsString));
         String body = hashArticleDate.get(resultsString[0])[0];
         String date = hashArticleDate.get(resultsString[0])[1];
     
@@ -180,7 +184,8 @@ public class SetWordCountData {
     }
     
     // Retrieve the article body from the specified URL
-    public String[] getArticleBody(String url, String date) {
+    public String[] getArticleBody(String url, String date, String articleDescription) {
+        /**
         String[] body = {"", date};
         try {
             Request request = new Request.Builder()
@@ -194,8 +199,8 @@ public class SetWordCountData {
             e.printStackTrace();
             body[0] = FAIL;
             return body;
-        }
-        return body;
+        }**/
+        return new String[]{articleDescription, date};
     }
     
     // Record word counts for positive and negative words in the article body
@@ -231,10 +236,11 @@ public class SetWordCountData {
     
     // Calculate the percentage gain/loss for the specified ticker and date
     public double createPercentageGainLoss(String ticker, String date, int time) {
-        LocalDate dateGain = LocalDate.parse(date).plusDays(time);
+        LocalDate dateGain = LocalDate.parse(date).minusDays(time);
         boolean naPrevent = false;
         for (int j = 0; j < 5; j++) {
-            dateGain = dateGain.plusDays(1);
+            dateGain = dateGain.minusDays(1);
+
             if (stockDao.getSingleStock(ticker, dateGain.toString()) != null) {
                 naPrevent = true;
                 break;
@@ -242,8 +248,16 @@ public class SetWordCountData {
                 return 0;
             }
         }
-        double change = stockDao.getSingleStock(ticker, dateGain.toString()).getClose() -
-                stockDao.getSingleStock(ticker, date).getClose();
+        Double currentPrice = null;
+        LocalDate newDate = LocalDate.parse(date);
+        while(currentPrice == null){
+            if(stockDao.getSingleStock(ticker, newDate.toString()) != null) {
+                currentPrice = stockDao.getSingleStock(ticker, newDate.toString()).getClose();
+            } else {
+                newDate = newDate.minusDays(1);
+            }
+        }
+        double change = stockDao.getSingleStock(ticker, dateGain.toString()).getClose() - currentPrice;
         double finalChange = change / stockDao.getSingleStock(ticker, dateGain.toString()).getClose();
         if (naPrevent && finalChange == 0.0) {
             finalChange = 0.00001;

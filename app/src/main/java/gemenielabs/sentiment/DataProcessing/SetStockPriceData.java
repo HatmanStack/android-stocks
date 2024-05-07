@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+import gemenielabs.sentiment.BuildConfig;
 import gemenielabs.sentiment.R;
 import gemenielabs.sentiment.Room.StockDetails;
 import okhttp3.OkHttpClient;
@@ -17,11 +18,13 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.json.JSONArray;
 import java.util.Objects;
+import android.util.Log;
 
 public class SetStockPriceData {
 
     // Refactored getPriceData function
     public List<StockDetails> getPriceData(String ticker, String startDate, Context context) {
+        Log.i("PriceData", "Start");
         int size = stockDao.getStockDetails(ticker).size();
         if (size > 0) {
             String firstDate = stockDao.getStockDetails(ticker).get(size - 1).getDate();
@@ -46,10 +49,10 @@ public class SetStockPriceData {
             String requestString;
             if (newDate.equals("")) {
                 requestString = "https://api.tiingo.com/tiingo/daily/" + ticker +
-                        "/prices?startDate=" + date + "&token=" + context.getString(R.string.api_key);
+                        "/prices?startDate=" + date + "&token=" + BuildConfig.TIINGO_API_KEY;
             } else {
                 requestString = "https://api.tiingo.com/tiingo/daily/" + ticker +
-                        "/prices?startDate=" + date + "&endDate=" + newDate + "&token=" + context.getString(R.string.api_key);
+                        "/prices?startDate=" + date + "&endDate=" + newDate + "&token=" + BuildConfig.TIINGO_API_KEY;
 
             }
 

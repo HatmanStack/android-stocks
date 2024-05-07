@@ -39,6 +39,7 @@ public class SetPortfolioData {
             Log.i("TAG", "DEETS   SIZE  " + deets.size());
 
             // Create a list of CompletableFuture objects to get predictions asynchronously
+
             List<CompletableFuture<String>> jsonReturns = deets.stream()
                     .map(detail -> CompletableFuture.supplyAsync(() -> getPrediction(detail.getTicker(), context)))
                     .collect(Collectors.toList());
@@ -87,9 +88,11 @@ public class SetPortfolioData {
         SetNewsData setNewsData = new SetNewsData();
         SetWordCountData wordCountData = new SetWordCountData();
         SetCombineWordCountData combineWordCountData = new SetCombineWordCountData();
+
+        // Fix Date When Possible
         List<StockDetails> stockDetails = setStockPriceData.getPriceData(ticker, String.valueOf(LocalDate.now()), context);
         List<WordCountDetails> wordCountDetails = wordCountData.setWordCountData(ticker,
-                setNewsData.setNewsData(ticker, stockDetails, context), context);
+                setNewsData.setNewsData(ticker, stockDetails, String.valueOf(LocalDate.now()), context), context);
         List<CombinedWordDetails> combinedWordDetails = combineWordCountData.combineDates(wordCountDetails);
 
         // Create arrays for stock data

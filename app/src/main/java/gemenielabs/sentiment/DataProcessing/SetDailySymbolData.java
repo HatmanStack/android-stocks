@@ -12,6 +12,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.Objects;
 
+import gemenielabs.sentiment.BuildConfig;
 import gemenielabs.sentiment.R;
 import gemenielabs.sentiment.Room.SymbolDetails;
 import okhttp3.OkHttpClient;
@@ -30,7 +31,7 @@ public class SetDailySymbolData {
             OkHttpClient client = new OkHttpClient();
             Log.i("TERMS", terms);
             String string = "https://api.tiingo.com/tiingo/daily/" + terms +
-                    "?token=" + context.getString(R.string.api_key);
+                    "?token=" + BuildConfig.TIINGO_API_KEY;
             Request request = new Request.Builder()
                     .url(string)
                     .get()

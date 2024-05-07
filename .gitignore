@@ -8,3 +8,4 @@ local.properties
 Play_Store/
 .gradle/
 .idea/
+secrets.properties

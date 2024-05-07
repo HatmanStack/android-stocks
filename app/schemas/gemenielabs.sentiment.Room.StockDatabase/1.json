@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "60f4ce5e6df83e5a517e04bd26cc50a6",
+    "identityHash": "b21a3d38d35dc7dba42f58dd5b823f3d",
     "entities": [
       {
         "tableName": "stock_details",
@@ -136,10 +136,10 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": true,
           "columnNames": [
             "id"
-          ],
-          "autoGenerate": true
+          ]
         },
         "indices": [],
         "foreignKeys": []
@@ -192,17 +192,17 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": true,
           "columnNames": [
             "id"
-          ],
-          "autoGenerate": true
+          ]
         },
         "indices": [],
         "foreignKeys": []
       },
       {
         "tableName": "news_details",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` TEXT, `ticker` TEXT, `title` TEXT, `article_date` TEXT, `address` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` TEXT, `ticker` TEXT, `article_tickers` TEXT, `title` TEXT, `article_date` TEXT, `article_url` TEXT, `publisher` TEXT, `amp_url` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -223,6 +223,12 @@
             "notNull": false
           },
           {
+            "fieldPath": "articleTickers",
+            "columnName": "article_tickers",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
             "fieldPath": "title",
             "columnName": "title",
             "affinity": "TEXT",
@@ -235,17 +241,29 @@
             "notNull": false
           },
           {
-            "fieldPath": "address",
-            "columnName": "address",
+            "fieldPath": "articleUrl",
+            "columnName": "article_url",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "publisher",
+            "columnName": "publisher",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "ampUrl",
+            "columnName": "amp_url",
             "affinity": "TEXT",
             "notNull": false
           }
         ],
         "primaryKey": {
+          "autoGenerate": true,
           "columnNames": [
             "id"
-          ],
-          "autoGenerate": true
+          ]
         },
         "indices": [],
         "foreignKeys": []
@@ -286,10 +304,10 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": false,
           "columnNames": [
             "ticker"
-          ],
-          "autoGenerate": false
+          ]
         },
         "indices": [],
         "foreignKeys": []
@@ -372,10 +390,10 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": true,
           "columnNames": [
             "id"
-          ],
-          "autoGenerate": true
+          ]
         },
         "indices": [],
         "foreignKeys": []
@@ -452,10 +470,10 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": true,
           "columnNames": [
             "id"
-          ],
-          "autoGenerate": true
+          ]
         },
         "indices": [],
         "foreignKeys": []
@@ -464,7 +482,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '60f4ce5e6df83e5a517e04bd26cc50a6')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b21a3d38d35dc7dba42f58dd5b823f3d')"
     ]
   }
 }

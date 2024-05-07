@@ -5,6 +5,7 @@ import static gemenielabs.sentiment.Fragments.SearchFragment.client;
 
 import android.content.Context;
 
+import gemenielabs.sentiment.BuildConfig;
 import gemenielabs.sentiment.R;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -22,7 +23,7 @@ public class SetSearchSymbolData {
     public ArrayList<String[]> getSearchData(String terms, Context context) {
         // Build the URL string with the provided search terms and API key
         String url = "https://api.tiingo.com/tiingo/utilities/search?query=" + terms +
-                "&token=" + context.getString(R.string.api_key);
+                "&token=" + BuildConfig.TIINGO_API_KEY;
 
         // Create a new Request object with the URL
         Request request = new Request.Builder()

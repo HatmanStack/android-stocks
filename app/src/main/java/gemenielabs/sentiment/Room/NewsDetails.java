@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey;
 
 @Entity(tableName = "news_details")
 public class NewsDetails {
+
     @PrimaryKey(autoGenerate = true)
     public int id;
 
@@ -16,15 +17,33 @@ public class NewsDetails {
     @ColumnInfo(name = "ticker")
     public String ticker;
 
+    @ColumnInfo(name = "article_tickers")
+    public String articleTickers;
+
     @ColumnInfo(name = "title")
     public String title;
 
     @ColumnInfo(name = "article_date")
     public String articleDate;
 
-    @ColumnInfo(name = "address")
-    public String address;
+    @ColumnInfo(name = "article_url")
+    public String articleUrl;
 
+    @ColumnInfo(name = "publisher")
+    public String publisher;
+    @ColumnInfo(name = "amp_url")
+    public String ampUrl;
+
+    @ColumnInfo(name = "article_description")
+    public String articleDescription;
+    public String getArticleDescription(){return articleDescription;}
+    public void setArticleDescription(String articleDescription){this.articleDescription = articleDescription;}
+    public String getArticleTickers(){return articleTickers;}
+    public void setArticleTickers(String articleTickers){this.articleTickers = articleTickers;}
+    public String getAmpUrl(){return ampUrl;}
+    public void setAmpUrl(String ampUrl){this.ampUrl = ampUrl;}
+    public String getPublisher(){return publisher;}
+    public void setPublisher(String publisher){this.publisher = publisher;}
     public String getDate() {
         return date;
     }
@@ -50,11 +69,11 @@ public class NewsDetails {
     }
 
     public String getAddress() {
-        return address;
+        return articleUrl;
     }
 
     public void setAddress(String address) {
-        this.address = address;
+        this.articleUrl = articleUrl;
     }
 
     public String getArticleDate() {
@@ -65,11 +84,15 @@ public class NewsDetails {
         this.articleDate = articleDate;
     }
 
-    public NewsDetails(String date, String ticker, String title, String articleDate, String address) {
+    public NewsDetails(String date, String ticker, String title, String articleDate, String articleUrl, String articleTickers, String ampUrl, String publisher, String articleDescription) {
         this.date = date;
         this.ticker = ticker;
         this.title = title;
         this.articleDate = articleDate;
-        this.address = address;
+        this.articleUrl = articleUrl;
+        this.articleTickers = articleTickers;
+        this.ampUrl = ampUrl;
+        this.publisher = publisher;
+        this.articleDescription = articleDescription;
     }
 }

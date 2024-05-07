@@ -117,7 +117,7 @@ public class CombinedWordCountRecycler extends RecyclerView.Adapter<CombinedWord
                 public void run() {
                     LocalDate verbose = finalDateGain;
                     for (int j = 0; j < 5; j++) {
-                        verbose = verbose.plusDays(1);
+                        verbose = verbose.minusDays(1);
                         if (stockDao.getSingleStock(ticker, verbose.toString()) != null) {
                             isReal = true;
                             break;
@@ -125,8 +125,17 @@ public class CombinedWordCountRecycler extends RecyclerView.Adapter<CombinedWord
                             verbose = LocalDate.parse(date);
                         }
                     }
+                    Double currentPrice = null;
+                    LocalDate newDate = LocalDate.parse(date);
+                    while(currentPrice == null){
+                        if(stockDao.getSingleStock(ticker, newDate.toString()) != null) {
+                            currentPrice = stockDao.getSingleStock(ticker, newDate.toString()).getClose();
+                        } else {
+                            newDate = newDate.minusDays(1);
+                        }
+                    }
                     double change = stockDao.getSingleStock(ticker, verbose.toString()).getClose() -
-                            stockDao.getSingleStock(ticker, date).getClose();
+                            currentPrice;
                     double finalChange = change / stockDao.getSingleStock(ticker, verbose.toString()).getClose();
                     CombinedWordDetails combinedWordDetails = stockDao.getCombinedWordDetailsDate(ticker, date);
                     if (time == 0) {

@@ -125,7 +125,7 @@ public class SingleWordCountRecycler extends RecyclerView.Adapter<SingleWordCoun
                 
                 // Check for stock data on subsequent days
                 for (int j = 0; j < 5; j++) {
-                    verbose = verbose.plusDays(1);
+                    verbose = verbose.minusDays(1);
                     
                     if (stockDao.getSingleStock(ticker, verbose.toString()) != null) {
                         isReal = true;
@@ -134,10 +134,19 @@ public class SingleWordCountRecycler extends RecyclerView.Adapter<SingleWordCoun
                         verbose = LocalDate.parse(date);
                     }
                 }
+                Double currentPrice = null;
+                LocalDate newDate = LocalDate.parse(date);
+                while(currentPrice == null){
+                    if(stockDao.getSingleStock(ticker, newDate.toString()) != null) {
+                        currentPrice = stockDao.getSingleStock(ticker, newDate.toString()).getClose();
+                    } else {
+                        newDate = newDate.minusDays(1);
+                    }
+                }
                 
                 // Calculate percentage change
                 double change = stockDao.getSingleStock(ticker, verbose.toString()).getClose() -
-                        stockDao.getSingleStock(ticker, date).getClose();
+                        currentPrice;
                 double finalChange = change / stockDao.getSingleStock(ticker, verbose.toString()).getClose();
                 
                 // Update WordCountDetails with nextDay value

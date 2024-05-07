@@ -131,6 +131,7 @@ public class SearchFragment extends Fragment implements SearchRecycler.SearchCli
         searchRecycler.setSearchList(null, true);
         MainActivity.blockingActionBar = true;
         FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+        Log.i("StockHostFragment", "StartSwitch");
         fragmentManager.beginTransaction()
                 .replace(R.id.fragment_container_view, StockHostFragment.class,
                         null).setReorderingAllowed(true).addToBackStack(null).commit();

@@ -76,7 +76,7 @@ public class PriceFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         assert getParentFragment() != null;
-
+        Log.i("PriceFragment", "Start");
         // Create a new StockRecycler object and set up the RecyclerView
         StockRecycler stockRecycler = new StockRecycler(getParentFragment().getActivity());
         int[] hard = {R.id.stock_symbol, R.id.stock_name, R.id.stock_marketexchange, R.id.stock_ipoyear};
@@ -114,7 +114,7 @@ public class PriceFragment extends Fragment {
 
                 final List<StockDetails> stockDetails = data.getPriceData(args, currentDate, context);
                 SetNewsData newsData = new SetNewsData();
-                final List<NewsDetails> newsdeets = newsData.setNewsData(args, stockDetails, context);
+                final List<NewsDetails> newsdeets = newsData.setNewsData(args, stockDetails, currentDate, context);
 
                 // Log the size of the newsdeets list
                 Log.i("TAG_Price_Fragment_newsdeets:  ", " " + newsdeets.size());

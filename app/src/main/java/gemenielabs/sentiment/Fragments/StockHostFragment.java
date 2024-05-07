@@ -1,6 +1,7 @@
 package gemenielabs.sentiment.Fragments;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,6 +34,7 @@ public class StockHostFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         // Create a StockFragmentCollectionAdapter object
+
         StockFragmentCollectionAdapter adapter = new StockFragmentCollectionAdapter(this);
 
         // Set the adapter for the ViewPager2
@@ -43,6 +45,7 @@ public class StockHostFragment extends Fragment {
         viewPager.setPageTransformer(new ZoomOutPageTransformer());
 
         // Create a TabLayoutMediator object to link the TabLayout and ViewPager2
+
         TabLayout tabLayout = view.findViewById(R.id.tab_layout);
         String[] labels = {"Price", "Words", "News"};
         new TabLayoutMediator(tabLayout, viewPager,

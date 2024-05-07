@@ -39,7 +39,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Initialize the database
-        StockDatabase db = Room.databaseBuilder(getApplicationContext(), StockDatabase.class, "stocksdatabase").build();
+        StockDatabase db = Room.databaseBuilder(getApplicationContext(), StockDatabase.class, "stocksdatabase")
+                .fallbackToDestructiveMigration().build();
         stockDao = db.stockDao();
 
         // Set up the action bar
