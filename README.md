@@ -51,7 +51,7 @@ To improve performance for the Play Store App's microservices, which are configu
 - Open Android Studio. From the Welcome screen, select Open an existing Android Studio project.
 - From the Open File or Project window that appears, navigate to and select the android-stocks directory. Click OK.
 - If it asks you to do a Gradle Sync, click OK.
-- <b>Create secrets.properties file in your root folder and add TIINGO_API_KEY="api_key" and POLIGON_API_KEY="api_key"</b
+- <b>Create secrets.properties file in your root folder and add TIINGO_API_KEY="api_key" and POLIGON_API_KEY="api_key"</b>
 - With your Android device/emulator connected to your computer and developer mode enabled, click on the green Run arrow in Android Studio.
 
 ## FinBERT Training Data
