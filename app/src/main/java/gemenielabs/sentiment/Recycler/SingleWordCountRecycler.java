@@ -15,8 +15,11 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executors;
@@ -82,18 +85,15 @@ public class SingleWordCountRecycler extends RecyclerView.Adapter<SingleWordCoun
             holder.low.setText(holderText);
             holder.low.setTextColor(mContext.getColor(textColor));
             
+
+            createPercentageGainLoss(wordCountDetailsList.get(0).getTicker(), details.getDate(), 1);
             double nextDouble = details.getNextDay();
             String nextString = String.format(Locale.US, "%,.2f", nextDouble * 100) + "%";
-            
             if (nextDouble == 0.0) {
-                if (!createPercentageGainLoss(wordCountDetailsList.get(0).getTicker(),
-                        details.getDate(), 0)) {
-                    // Set text color based on system attribute
                     TypedValue value = new TypedValue();
                     mContext.getTheme().resolveAttribute(android.R.attr.textColorPrimary, value, true);
                     holder.close.setTextColor(ContextCompat.getColor(mContext, value.resourceId));
                     nextString = "N/A";
-                }
             }
             
             if (!nextString.equals("N/A")) {
@@ -115,39 +115,32 @@ public class SingleWordCountRecycler extends RecyclerView.Adapter<SingleWordCoun
         }
     }
     
-    public boolean createPercentageGainLoss(String ticker, String date, int time) {
-        final LocalDate dateGain = LocalDate.parse(date);
-        isReal = false;
-        
-        if (dateGain.isBefore(LocalDate.now())) {
+    public void createPercentageGainLoss(String ticker, String date, int time) {
+
+        String articleDate = date.replace("-", "");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        LocalDate today = LocalDate.now();
+        String dateToday = today.format(formatter);
+        LocalDate comparedDate = LocalDate.parse(articleDate, formatter);
+        LocalDate futureDate = comparedDate.plusDays(time);
+
+         if(dateToday.compareTo(futureDate.toString()) > 0) {
             Executors.newSingleThreadExecutor().execute(() -> {
-                LocalDate verbose = dateGain;
-                
-                // Check for stock data on subsequent days
-                for (int j = 0; j < 5; j++) {
-                    verbose = verbose.minusDays(1);
-                    
-                    if (stockDao.getSingleStock(ticker, verbose.toString()) != null) {
-                        isReal = true;
-                        break;
-                    } else if (j == 4) {
-                        verbose = LocalDate.parse(date);
-                    }
-                }
                 Double currentPrice = null;
-                LocalDate newDate = LocalDate.parse(date);
-                while(currentPrice == null){
-                    if(stockDao.getSingleStock(ticker, newDate.toString()) != null) {
-                        currentPrice = stockDao.getSingleStock(ticker, newDate.toString()).getClose();
-                    } else {
-                        newDate = newDate.minusDays(1);
+                LocalDate findDate = LocalDate.parse(futureDate.toString());
+                for (int j = 0; j < 7; j++) {
+                    findDate = findDate.plusDays(j);
+                    if (stockDao.getSingleStock(ticker, findDate.toString()) != null) {
+                        currentPrice = stockDao.getSingleStock(ticker, findDate.toString()).getClose();
+                        break;
+                    }
+                    if(j == 6){
+                        return ;
                     }
                 }
-                
-                // Calculate percentage change
-                double change = stockDao.getSingleStock(ticker, verbose.toString()).getClose() -
-                        currentPrice;
-                double finalChange = change / stockDao.getSingleStock(ticker, verbose.toString()).getClose();
+
+                double change = stockDao.getSingleStock(ticker, comparedDate.toString()).getClose() - currentPrice;
+                double finalChange = change / stockDao.getSingleStock(ticker, comparedDate.toString()).getClose();
                 
                 // Update WordCountDetails with nextDay value
                 List<WordCountDetails> wordCountDetails = stockDao.getWordCountDetailsDate(ticker, date);
@@ -157,9 +150,9 @@ public class SingleWordCountRecycler extends RecyclerView.Adapter<SingleWordCoun
                 }
             });
         }
-        
-        return isReal;
     }
+
+
     
     public String normalizeDate(String string) {
         String[] splitString = string.split("");

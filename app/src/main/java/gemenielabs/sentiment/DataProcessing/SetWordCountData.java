@@ -62,7 +62,7 @@ public class SetWordCountData {
             }
     
             HashMap<String, String[]> Hash_Article_Date = new HashMap<>();
-            int SpeedDisMuthaUp = 0;
+
     
             // Process the articles and gather information
             for (CompletableFuture future : articles) {
@@ -75,6 +75,7 @@ public class SetWordCountData {
     
                 // Remove numbers and percentages from the article body
                 String replaceNumbers = body[0].replaceAll("-*\\+*\\d*.\\d*%", "");
+
                 int hash = replaceNumbers.hashCode();
     
                 // Check if the article body has been processed before and skip if sentiment is available
@@ -84,9 +85,8 @@ public class SetWordCountData {
                 }
     
                 // Add the article body to the HashMap if sentiment is not available and speed limit is not reached
-                if (!body[0].equals(FAIL) && SpeedDisMuthaUp < 8) {
+                if (!body[0].equals(FAIL)) {
                     Hash_Article_Date.put(String.valueOf(hash), body);
-                    SpeedDisMuthaUp++;
                 }
             }
     
@@ -114,6 +114,7 @@ public class SetWordCountData {
                     System.out.println(entry.getKey() + "=" + Arrays.toString(entry.getValue()));
                 }
                 WordCountDetails wordCountDetails = createWordCountDetails(ticker, returns, Hash_Article_Date, context);
+                Log.i("TAG", "SetWordCountData WordCountDetails" + wordCountDetails);
                 stockDao.insertWordCountContent(wordCountDetails);
             }
         }
@@ -126,7 +127,7 @@ public class SetWordCountData {
             createNoNewsWordCountDetail(ticker);
             wordCountDetailsList = stockDao.getWordCountDetails(ticker);
         }
-    
+        Log.i("TAG", "SetWordCountData " + wordCountDetailsList);
         return wordCountDetailsList;
     }
     
@@ -137,7 +138,7 @@ public class SetWordCountData {
                 "", 0);
 
         String[] resultsString = returns.split(" ");
-        Log.i("TAG", Arrays.toString(resultsString));
+
         String body = hashArticleDate.get(resultsString[0])[0];
         String date = hashArticleDate.get(resultsString[0])[1];
     

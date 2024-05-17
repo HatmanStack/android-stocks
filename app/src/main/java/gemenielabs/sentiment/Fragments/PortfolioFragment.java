@@ -161,6 +161,7 @@ public class PortfolioFragment extends Fragment implements PortfolioRecycler.Por
             if(fragment == null) {
                 portfolioDetails = setPortfolioData.setPortfolioData(updating, currentName, currentTicker, getActivity());
                 final List<PortfolioDetails> deets = portfolioDetails;
+                Log.i("TAG", "Portfolio_Details " + deets);
                 if(isAdded()) {
                     requireActivity().runOnUiThread(() -> model.getPortfolioDetails().setValue(deets));
                 }

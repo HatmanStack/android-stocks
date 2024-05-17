@@ -1,6 +1,7 @@
 package gemenielabs.sentiment.Recycler;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,7 +43,8 @@ public void onBindViewHolder(@NonNull StockVH holder, int position) {
     
     TextView[] textViews = {holder.next, holder.wks, holder.mnth};
     String[] data = {singlePortfolio.getNext(), singlePortfolio.getWks(), singlePortfolio.getMnth()};
-    
+    Log.i("TAG", "onBindPortfolio " + position);
+    Log.i("TAG", "singlePortfolio " + singlePortfolio);
     for (int i = 0; i < textViews.length; i++) {
         String[] holderData = data[i].split(" ");
         String score = holderData[0] + "0000";

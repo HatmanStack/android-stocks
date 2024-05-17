@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -47,7 +48,7 @@ public class CombinedWordCountRecycler extends RecyclerView.Adapter<CombinedWord
     @Override
     public void onBindViewHolder(@NonNull StockVH holder, int position) {
         if(wordCountDetailsList.size() > 0) {
-            if(wordCountDetailsList.get(position).getSentiment().equals("No News Data")){
+            if (wordCountDetailsList.get(position).getSentiment().equals("No News Data")) {
                 holder.open.setText(wordCountDetailsList.get(position).getSentiment());
                 holder.date.setVisibility(View.GONE);
                 holder.high.setVisibility(View.GONE);
@@ -55,13 +56,13 @@ public class CombinedWordCountRecycler extends RecyclerView.Adapter<CombinedWord
                 holder.close.setVisibility(View.GONE);
                 holder.bar.setVisibility(View.GONE);
             }
-            TextView[] textViews = new TextView[]{holder.high,holder.low,holder.close};
+            TextView[] textViews = new TextView[]{holder.high, holder.low, holder.close};
             holder.date.setText(normalizeDate(wordCountDetailsList.get(position).getDate().substring(5)));
 
             String sent = wordCountDetailsList.get(position).getSentiment();
-            if(sent.equals("POS")){
+            if (sent.equals("POS")) {
                 holder.open.setTextColor(mContext.getColor(R.color.green));
-            }else if (sent.equals("NEUT")){
+            } else if (sent.equals("NEUT")) {
                 holder.open.setTextColor(mContext.getColor(R.color.yellow));
             } else {
                 holder.open.setTextColor(mContext.getColor(R.color.red));
@@ -72,23 +73,24 @@ public class CombinedWordCountRecycler extends RecyclerView.Adapter<CombinedWord
             double twoWks = wordCountDetailsList.get(position).getTwoWks();
             double oneMnth = wordCountDetailsList.get(position).getOneMnth();
             double[] doubles = new double[]{nextDay, twoWks, oneMnth};
-            int plusDays = 0;
-            for(int i = 0;i< 3;i++) {
-                String nextString = String.format(Locale.US, "%,.2f", doubles[i]*100) + "%";
-                if(doubles[i] == 0.0) {
-                    if (i == 1) {
-                        plusDays = 14;
-                    } else if (i == 2) {
-                        plusDays = 28;
-                    }
-                    if(!createPercentageGainLoss(wordCountDetailsList.get(0).getTicker(),
-                            wordCountDetailsList.get(position).getDate(), plusDays)){
-                        TypedValue value = new TypedValue();
-                        mContext.getTheme().resolveAttribute(android.R.attr.textColorPrimary, value, true);
-                        textViews[i].setTextColor(ContextCompat.getColor(mContext, value.resourceId));
-                        nextString = "N/A";
-                    }
+            int plusDays = 1;
+            for (int i = 0; i < 3; i++) {
+                String nextString = String.format(Locale.US, "%,.2f", doubles[i] * 100) + "%";
+
+                if (i == 1) {
+                    plusDays = 14;
+                } else if (i == 2) {
+                    plusDays = 28;
                 }
+                createPercentageGainLoss(wordCountDetailsList.get(0).getTicker(),
+                        wordCountDetailsList.get(position).getDate(), plusDays);
+                if (doubles[i] == 0.0) {
+                    TypedValue value = new TypedValue();
+                    mContext.getTheme().resolveAttribute(android.R.attr.textColorPrimary, value, true);
+                    textViews[i].setTextColor(ContextCompat.getColor(mContext, value.resourceId));
+                    nextString = "N/A";
+                }
+
                 if (nextString.charAt(0) == '-') {
                     textViews[i].setTextColor(mContext.getColor(R.color.red));
                     nextString = nextString.substring(1);
@@ -96,9 +98,10 @@ public class CombinedWordCountRecycler extends RecyclerView.Adapter<CombinedWord
                     textViews[i].setTextColor(mContext.getColor(R.color.green));
                 }
                 textViews[i].setText(nextString);
+                }
             }
         }
-    }
+
 
     public void setWordCountDetailsList(List<CombinedWordDetails> list){
         if(list != null){
@@ -107,36 +110,31 @@ public class CombinedWordCountRecycler extends RecyclerView.Adapter<CombinedWord
         }
     }
 
-    public boolean createPercentageGainLoss(String ticker, String date, int time) {
-        LocalDate dateGain = LocalDate.parse(date);
-        final LocalDate finalDateGain = dateGain.plusDays(time);
-        isReal = false;
-        if(finalDateGain.isBefore(LocalDate.now())) {
-            Executors.newSingleThreadExecutor().execute(new Runnable() {
-                @Override
-                public void run() {
-                    LocalDate verbose = finalDateGain;
-                    for (int j = 0; j < 5; j++) {
-                        verbose = verbose.minusDays(1);
-                        if (stockDao.getSingleStock(ticker, verbose.toString()) != null) {
-                            isReal = true;
-                            break;
-                        }else if(j == 4){
-                            verbose = LocalDate.parse(date);
-                        }
+    public void createPercentageGainLoss(String ticker, String date, int time) {
+        String articleDate = date.replace("-", "");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        LocalDate today = LocalDate.now();
+        String dateToday = today.format(formatter);
+        LocalDate comparedDate = LocalDate.parse(articleDate, formatter);
+        LocalDate futureDate = comparedDate.plusDays(time);
+
+        if(dateToday.compareTo(futureDate.toString()) > 0) {
+            Executors.newSingleThreadExecutor().execute(() -> {
+                Double currentPrice = null;
+                LocalDate findDate = LocalDate.parse(futureDate.toString());
+                for (int j = 0; j < 7; j++) {
+                    findDate = findDate.plusDays(j);
+                    if (stockDao.getSingleStock(ticker, findDate.toString()) != null) {
+                        currentPrice = stockDao.getSingleStock(ticker, findDate.toString()).getClose();
+                        break;
                     }
-                    Double currentPrice = null;
-                    LocalDate newDate = LocalDate.parse(date);
-                    while(currentPrice == null){
-                        if(stockDao.getSingleStock(ticker, newDate.toString()) != null) {
-                            currentPrice = stockDao.getSingleStock(ticker, newDate.toString()).getClose();
-                        } else {
-                            newDate = newDate.minusDays(1);
-                        }
+                    if(j == 6){
+                        return ;
                     }
-                    double change = stockDao.getSingleStock(ticker, verbose.toString()).getClose() -
-                            currentPrice;
-                    double finalChange = change / stockDao.getSingleStock(ticker, verbose.toString()).getClose();
+                }
+
+                double change = stockDao.getSingleStock(ticker, comparedDate.toString()).getClose() - currentPrice;
+                double finalChange = change / stockDao.getSingleStock(ticker, comparedDate.toString()).getClose();
                     CombinedWordDetails combinedWordDetails = stockDao.getCombinedWordDetailsDate(ticker, date);
                     if (time == 0) {
                         combinedWordDetails.setNextDay(finalChange);
@@ -146,10 +144,10 @@ public class CombinedWordCountRecycler extends RecyclerView.Adapter<CombinedWord
                         combinedWordDetails.setOneMnth(finalChange);
                     }
                     stockDao.insertCombinedWordDetails(combinedWordDetails);
-                }
             });
         }
-        return isReal;
+
+
     }
 
     public String normalizeDate(String string){
@@ -171,6 +169,7 @@ public class CombinedWordCountRecycler extends RecyclerView.Adapter<CombinedWord
 
         return wordCountDetailsList.size();
     }
+
 
     static class StockVH extends RecyclerView.ViewHolder{
 
