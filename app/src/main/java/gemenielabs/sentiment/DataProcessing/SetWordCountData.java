@@ -16,6 +16,7 @@ import org.jsoup.nodes.Document;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,6 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 
 import gemenielabs.sentiment.Helper.JsonReturn;
 import gemenielabs.sentiment.Helper.JsonSend;
@@ -44,13 +46,18 @@ public class SetWordCountData {
         // Log statements removed for code conciseness
     
         ArrayList<CompletableFuture> articles = new ArrayList<>();
+
+
         if (list.size() > 0) {
             ArrayList<CompletableFuture> results = new ArrayList<>();
-    
+            
             // Process each news article asynchronously
             for (NewsDetails news : list) {
                 String newsArticleDate = news.getArticleDate();
                 String url = news.getAddress();
+                
+                Log.i("TAG", "ADDRESSES: " + url);
+
                 // Fix until newParsing of article Data is ready
                 String articleDescription = news.getArticleDescription();
                 articles.add(CompletableFuture.supplyAsync(() -> getArticleBody(url, newsArticleDate, articleDescription)));
@@ -80,7 +87,7 @@ public class SetWordCountData {
     
                 // Check if the article body has been processed before and skip if sentiment is available
                 WordCountDetails isHere = stockDao.getSingleHashedWordCountDetails(ticker, hash);
-                if (isHere != null && !isHere.getSentiment().equals(FAIL)) {
+                if (isHere != null ) {
                     continue;
                 }
     
@@ -93,6 +100,7 @@ public class SetWordCountData {
             // Process the article bodies to get sentiment asynchronously
             for (String key : Hash_Article_Date.keySet()) {
                 String[] bodyWithHash = {key, Hash_Article_Date.get(key)[0]};
+
                 results.add(CompletableFuture.supplyAsync(() -> getSentiment(bodyWithHash, context)));
             }
     
@@ -237,32 +245,35 @@ public class SetWordCountData {
     
     // Calculate the percentage gain/loss for the specified ticker and date
     public double createPercentageGainLoss(String ticker, String date, int time) {
-        LocalDate dateGain = LocalDate.parse(date).minusDays(time);
-        boolean naPrevent = false;
-        for (int j = 0; j < 5; j++) {
-            dateGain = dateGain.minusDays(1);
+        LocalDate comparedDate = LocalDate.parse(date);
+        LocalDate futureDate = comparedDate.plusDays(time);
+        double finalChange = 0.0;
+        String maxDate = String.valueOf(stockDao.getSingleStockTicker(ticker).getDate()).replace("-", "");
+        if(maxDate.compareTo(futureDate.toString()) < 0) {
+            Double currentPrice = null;
+            LocalDate findDate = LocalDate.parse(futureDate.toString());
+            for (int j = 0; j < 7; j++) {
+                findDate = findDate.plusDays(j);
+                if (stockDao.getSingleStock(ticker, findDate.toString()) != null) {
+                    currentPrice = stockDao.getSingleStock(ticker, findDate.toString()).getClose();
+                    break;
+                }
+                if(j == 6){
+                    return finalChange;
+                }
+            }
 
-            if (stockDao.getSingleStock(ticker, dateGain.toString()) != null) {
-                naPrevent = true;
-                break;
-            } else if (j == 4) {
-                return 0;
+            double change = stockDao.getSingleStock(ticker, comparedDate.toString()).getClose() - currentPrice;
+            finalChange = change / stockDao.getSingleStock(ticker, comparedDate.toString()).getClose();
+
+            // Update WordCountDetails with nextDay value
+            List<WordCountDetails> wordCountDetails = stockDao.getWordCountDetailsDate(ticker, date);
+            for (WordCountDetails wordCountDetails1 : wordCountDetails) {
+                wordCountDetails1.setNextDay(finalChange);
+                stockDao.insertWordCountContent(wordCountDetails1);
             }
         }
-        Double currentPrice = null;
-        LocalDate newDate = LocalDate.parse(date);
-        while(currentPrice == null){
-            if(stockDao.getSingleStock(ticker, newDate.toString()) != null) {
-                currentPrice = stockDao.getSingleStock(ticker, newDate.toString()).getClose();
-            } else {
-                newDate = newDate.minusDays(1);
-            }
-        }
-        double change = stockDao.getSingleStock(ticker, dateGain.toString()).getClose() - currentPrice;
-        double finalChange = change / stockDao.getSingleStock(ticker, dateGain.toString()).getClose();
-        if (naPrevent && finalChange == 0.0) {
-            finalChange = 0.00001;
-        }
+
         return finalChange;
     }
     

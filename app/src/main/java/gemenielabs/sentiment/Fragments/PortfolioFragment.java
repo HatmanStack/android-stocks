@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -86,6 +87,7 @@ public class PortfolioFragment extends Fragment implements PortfolioRecycler.Por
         if(getActivity() != null){
             Context context = getActivity();
             LocalDate date = LocalDate.now();
+            
             SharedPreferences sharedPreferences = context.getSharedPreferences("gemenielabs.sentiment.Fragments", Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
             if(sharedPreferences.getString("DATE","").equals("")){

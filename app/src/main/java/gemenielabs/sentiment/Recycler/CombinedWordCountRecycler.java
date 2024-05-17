@@ -5,6 +5,7 @@ import static gemenielabs.sentiment.MainActivity.stockDao;
 
 import android.content.Context;
 import android.icu.text.DecimalFormat;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -113,13 +114,14 @@ public class CombinedWordCountRecycler extends RecyclerView.Adapter<CombinedWord
     public void createPercentageGainLoss(String ticker, String date, int time) {
         String articleDate = date.replace("-", "");
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        LocalDate today = LocalDate.now();
-        String dateToday = today.format(formatter);
         LocalDate comparedDate = LocalDate.parse(articleDate, formatter);
         LocalDate futureDate = comparedDate.plusDays(time);
 
-        if(dateToday.compareTo(futureDate.toString()) > 0) {
-            Executors.newSingleThreadExecutor().execute(() -> {
+        Executors.newSingleThreadExecutor().execute(() -> {
+        String maxDate = String.valueOf(stockDao.getSingleStockTicker(ticker).getDate()).replace("-", "");
+
+        if(maxDate.compareTo(futureDate.toString()) < 0) {
+
                 Double currentPrice = null;
                 LocalDate findDate = LocalDate.parse(futureDate.toString());
                 for (int j = 0; j < 7; j++) {
@@ -132,9 +134,9 @@ public class CombinedWordCountRecycler extends RecyclerView.Adapter<CombinedWord
                         return ;
                     }
                 }
-
-                double change = stockDao.getSingleStock(ticker, comparedDate.toString()).getClose() - currentPrice;
-                double finalChange = change / stockDao.getSingleStock(ticker, comparedDate.toString()).getClose();
+                Log.i("TAG", " " + findDate);
+                double change = stockDao.getSingleStock(ticker, findDate.toString()).getClose() - currentPrice;
+                double finalChange = change / stockDao.getSingleStock(ticker, findDate.toString()).getClose();
                     CombinedWordDetails combinedWordDetails = stockDao.getCombinedWordDetailsDate(ticker, date);
                     if (time == 0) {
                         combinedWordDetails.setNextDay(finalChange);
@@ -144,10 +146,10 @@ public class CombinedWordCountRecycler extends RecyclerView.Adapter<CombinedWord
                         combinedWordDetails.setOneMnth(finalChange);
                     }
                     stockDao.insertCombinedWordDetails(combinedWordDetails);
-            });
+
         }
 
-
+        });
     }
 
     public String normalizeDate(String string){

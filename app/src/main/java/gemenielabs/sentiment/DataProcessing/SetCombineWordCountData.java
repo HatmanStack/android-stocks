@@ -120,6 +120,7 @@ public class SetCombineWordCountData {
                 }
 
                 // Calculate average sentiment if there is more than one article
+
                 if (posnumberOfArticles > 1) {
                     possentiment = possentiment / posnumberOfArticles;
                 }

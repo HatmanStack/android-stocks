@@ -119,13 +119,14 @@ public class SingleWordCountRecycler extends RecyclerView.Adapter<SingleWordCoun
 
         String articleDate = date.replace("-", "");
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        LocalDate today = LocalDate.now();
-        String dateToday = today.format(formatter);
         LocalDate comparedDate = LocalDate.parse(articleDate, formatter);
         LocalDate futureDate = comparedDate.plusDays(time);
 
-         if(dateToday.compareTo(futureDate.toString()) > 0) {
-            Executors.newSingleThreadExecutor().execute(() -> {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            String maxDate = String.valueOf(stockDao.getSingleStockTicker(ticker).getDate()).replace("-", "");
+
+             if(maxDate.compareTo(futureDate.toString()) < 0) {
+
                 Double currentPrice = null;
                 LocalDate findDate = LocalDate.parse(futureDate.toString());
                 for (int j = 0; j < 7; j++) {
@@ -141,15 +142,15 @@ public class SingleWordCountRecycler extends RecyclerView.Adapter<SingleWordCoun
 
                 double change = stockDao.getSingleStock(ticker, comparedDate.toString()).getClose() - currentPrice;
                 double finalChange = change / stockDao.getSingleStock(ticker, comparedDate.toString()).getClose();
-                
+
                 // Update WordCountDetails with nextDay value
                 List<WordCountDetails> wordCountDetails = stockDao.getWordCountDetailsDate(ticker, date);
                 for (WordCountDetails wordCountDetails1 : wordCountDetails) {
                     wordCountDetails1.setNextDay(finalChange);
                     stockDao.insertWordCountContent(wordCountDetails1);
                 }
-            });
-        }
+            }
+        });
     }
 
 

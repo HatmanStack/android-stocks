@@ -40,10 +40,6 @@ public class SetNewsData {
         // Get news stories for the given ticker
         List<NewsDetails> newsStories = stockDao.getNewsDetails(ticker);
 
-        // Get the most recent date from the news stories
-        LocalDate mostRecentDate = newsStories.isEmpty() ? null : LocalDate.parse(newsStories.get(0).getDate());
-
-        // Create a new NewsDetails object to store the details of each news story
         OkHttpClient client = new OkHttpClient();
 
         Request request = new Request.Builder()
@@ -59,8 +55,21 @@ public class SetNewsData {
                     JSONArray results = jsonObject.getJSONArray("results");
                     Log.i("NEWS", results.toString());
                     for (int i = 0; i < results.length(); i++) {
+                        
                         JSONObject result = results.getJSONObject(i);
                         String articleUrl = result.optString("article_url");
+
+                        boolean urlExists = false;
+                        for (NewsDetails newsDetail : newsStories) {
+                            if (newsDetail.getAddress().equals(articleUrl)) {
+                                urlExists = true;
+                                break;
+                            }
+                        }
+                        if (urlExists) {
+                            continue;
+                        }
+
                         String title = result.optString("title");
                         String articleDate = result.optString("published_utc").split("T")[0];
                         String publisher = result.optString("name");

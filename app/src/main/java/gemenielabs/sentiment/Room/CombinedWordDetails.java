@@ -1,14 +1,15 @@
 package gemenielabs.sentiment.Room;
 
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "combined_word_count_details")
 public class CombinedWordDetails {
-    @PrimaryKey(autoGenerate = true)
-    public int id;
 
+    @PrimaryKey
+    @NonNull
     @ColumnInfo(name = "date")
     public String date;
 
@@ -38,14 +39,6 @@ public class CombinedWordDetails {
 
     @ColumnInfo(name = "update_date")
     public String updateDate;
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
 
     public String getDate() {
         return date;

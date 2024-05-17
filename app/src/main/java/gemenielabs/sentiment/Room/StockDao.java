@@ -55,6 +55,9 @@ public interface StockDao {
     @Query("SELECT * FROM stock_details WHERE ticker = :ticker AND date = :date")
     StockDetails getSingleStock(String ticker, String date);
 
+    @Query("SELECT * FROM stock_details WHERE ticker = :ticker AND date = (SELECT MAX(date) FROM stock_details WHERE ticker = :ticker)")
+    StockDetails getSingleStockTicker(String ticker);
+
     @Query("SELECT * FROM symbol_details WHERE ticker = :ticker")
     SymbolDetails getDailySymbol(String ticker);
 
