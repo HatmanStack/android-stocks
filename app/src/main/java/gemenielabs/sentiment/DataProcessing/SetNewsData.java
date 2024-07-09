@@ -44,7 +44,7 @@ public class SetNewsData {
 
         Request request = new Request.Builder()
                 .url("https://api.polygon.io/v2/reference/news?ticker=" + ticker + "&published_utc=" + 
-                date +  "&apiKey=" + BuildConfig.POLIGON_API_KEY)
+                date +  "&apiKey=" + BuildConfig.POLYGON_API_KEY)
                 .addHeader("Content-Type", "application/json")
                 .build();
             try (Response response = client.newCall(request).execute()) {

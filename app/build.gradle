@@ -5,6 +5,10 @@ plugins {
 def secretsProperties = new Properties()
 file("../secrets.properties").withInputStream { secretsProperties.load(it) }
 
+// Debugging: Print out all loaded properties to ensure they are being read correctly.
+secretsProperties.each { key, value ->
+    println "$key=$value"
+}
 
 android {
 
@@ -23,9 +27,11 @@ android {
             }
         }
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField "String", "TIINGO_API_KEY", secretsProperties["TIINGO_API_KEY"]
-        buildConfigField "String", "POLIGON_API_KEY", secretsProperties["POLIGON_API_KEY"]
-    
+
+        buildTypes.each {
+            it.buildConfigField 'String', 'TIINGO_API_KEY', "\"${secretsProperties['TIINGO_API_KEY']}\""
+            it.buildConfigField 'String', 'POLYGON_API_KEY', "\"${secretsProperties['POLYGON_API_KEY']}\""
+        }
     }
 
     buildTypes {
@@ -69,6 +75,7 @@ dependencies {
     implementation "androidx.navigation:navigation-ui:2.7.0"
     implementation 'org.jsoup:jsoup:1.14.3'
     implementation 'com.google.code.gson:gson:2.9.0'
+    implementation 'com.google.guava:guava:21.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
