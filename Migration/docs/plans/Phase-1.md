@@ -103,6 +103,8 @@ You'll read these files to understand the original schema:
    - Configure Prettier for consistent code formatting
    - Set up Husky pre-commit hooks to run linting automatically
 
+   > **Implementation Question:** If you're using ESLint 9.x, does it support the `.eslintrc.js` configuration format? What happens when you run `npm run lint` with ESLint 9 and a legacy config file?
+
 6. **Create Basic Directory Structure**
    - Follow the structure defined in Phase-0.md "Shared Patterns & Conventions"
    - Create empty directories: `src/`, `assets/`, `__tests__/`
@@ -112,6 +114,8 @@ You'll read these files to understand the original schema:
    - Create `App.tsx` with a basic "Hello World" component
    - Ensure the app builds and runs: `npx expo start`
    - Test on at least one platform (web, iOS simulator, or Android emulator)
+
+   > **Implementation Question:** What configuration file does Expo require to transpile TypeScript and JSX code? Can Metro bundler start without a Babel configuration? What happens when you run `npx expo start` without `babel.config.js`?
 
 **Verification Checklist:**
 - [ ] `npx expo start` runs without errors
@@ -123,6 +127,8 @@ You'll read these files to understand the original schema:
 **Testing Instructions:**
 - Run `npm test` to verify Jest is configured correctly (even with no tests yet)
 - Commit should build successfully (Husky pre-commit hook runs)
+
+> **Implementation Question:** When you run `npm test` after project setup, do the tests execute successfully? If you see "ReferenceError: You are trying to import a file outside of the scope of the test code," what might be missing from your Expo project configuration?
 
 **Commit Message Template:**
 ```
@@ -536,6 +542,8 @@ feat(database): implement SQLite database initialization
   - Edge cases (empty results, invalid ticker)
 - Use in-memory SQLite for fast test execution
 - Mock data generators can be used (Task 6)
+
+> **Implementation Question:** The success criteria states "All repositories pass unit tests." How can this be verified without test files for each repository? What command would you run to confirm all 6 repositories have passing tests? If you created the repositories but not the tests, does that satisfy the Phase 1 requirements?
 
 **Commit Message Template:**
 ```
