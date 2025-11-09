@@ -4,8 +4,7 @@
  */
 
 import type { TiingoStockPrice, TiingoSymbolMetadata } from '../api/tiingo.types';
-import { generateMockStockData } from '@/utils/mockData/stockMock';
-import { getDatesInRange } from '@/utils/date/dateUtils';
+import { generateMockStockPrices } from '@/utils/mockData/stockMock';
 
 /**
  * Mock implementation of fetchStockPrices
@@ -20,26 +19,25 @@ export async function fetchStockPrices(
   await new Promise((resolve) => setTimeout(resolve, 300));
 
   const end = endDate || new Date().toISOString().substring(0, 10);
-  const dates = getDatesInRange(startDate, end);
 
   // Generate mock stock data
-  const mockStockData = generateMockStockData(ticker, dates.length);
+  const mockStockData = generateMockStockPrices(ticker, startDate, end);
 
   // Transform to Tiingo format
-  const tiingoData: TiingoStockPrice[] = mockStockData.map((stock, index) => ({
-    date: `${dates[index]}T00:00:00.000Z`,
+  const tiingoData: TiingoStockPrice[] = mockStockData.map((stock) => ({
+    date: `${stock.date}T00:00:00.000Z`,
     open: stock.open,
     high: stock.high,
     low: stock.low,
     close: stock.close,
     volume: stock.volume,
-    adjOpen: stock.open,
-    adjHigh: stock.high,
-    adjLow: stock.low,
-    adjClose: stock.close,
-    adjVolume: stock.volume,
-    divCash: 0,
-    splitFactor: 1,
+    adjOpen: stock.adjOpen,
+    adjHigh: stock.adjHigh,
+    adjLow: stock.adjLow,
+    adjClose: stock.adjClose,
+    adjVolume: stock.adjVolume,
+    divCash: stock.divCash,
+    splitFactor: stock.splitFactor,
   }));
 
   console.log(`[MockTiingoService] Generated ${tiingoData.length} mock prices for ${ticker}`);

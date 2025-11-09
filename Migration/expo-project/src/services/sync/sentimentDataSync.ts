@@ -12,6 +12,17 @@ import { generateArticleHash } from '@/services/api/polygon.service';
 import type { WordCountDetails, CombinedWordDetails } from '@/types/database.types';
 
 /**
+ * Convert hex hash string to 32-bit integer
+ * @param hashString - Hex hash string from generateArticleHash
+ * @returns 32-bit integer hash
+ */
+function hashStringToNumber(hashString: string): number {
+  // Take first 8 characters of hex hash and convert to integer
+  const hexSubstring = hashString.substring(0, 8);
+  return parseInt(hexSubstring, 16);
+}
+
+/**
  * Sync sentiment analysis for articles on a specific date
  * @param ticker - Stock ticker symbol
  * @param date - Date to analyze (YYYY-MM-DD)
@@ -40,7 +51,8 @@ export async function syncSentimentData(
     // Analyze each article
     for (const article of articles) {
       // Generate hash for deduplication
-      const hash = generateArticleHash(article.articleUrl);
+      const hashString = generateArticleHash(article.articleUrl);
+      const hash = hashStringToNumber(hashString);
 
       // Check if sentiment already exists
       const exists = await WordCountRepository.existsByHash(hash);
@@ -126,8 +138,12 @@ async function aggregateSentiment(
     date,
     positive: totalPositive,
     negative: totalNegative,
-    sentiment: avgScore,
-    label: dominantSentiment,
+    sentimentNumber: avgScore,
+    sentiment: dominantSentiment,
+    nextDay: 0,
+    twoWks: 0,
+    oneMnth: 0,
+    updateDate: new Date().toISOString(),
   };
 
   // Upsert (insert or update)

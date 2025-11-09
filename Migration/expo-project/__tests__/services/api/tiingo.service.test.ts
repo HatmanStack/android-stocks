@@ -29,8 +29,8 @@ describe('Tiingo Service', () => {
 
     mockedAxios.create.mockReturnValue(mockAxiosInstance);
 
-    // Mock axios.isAxiosError to always return true for our test errors
-    mockedAxios.isAxiosError = jest.fn((error: any) => {
+    // Mock axios.isAxiosError
+    (mockedAxios.isAxiosError as unknown as jest.Mock) = jest.fn((error: any) => {
       return error && error.isAxiosError === true;
     });
 
