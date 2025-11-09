@@ -388,190 +388,332 @@ feat(sentiment): port bag-of-words sentiment analysis from Java
 
 ---
 
-### Task 4: Set Up Sentiment Analysis Service (Local Mock for MVP)
+### Task 4: Integrate with Existing Python Microservices
 
-**Goal:** Create a local mock sentiment service for development and MVP. AWS Lambda deployment for FinBERT is deferred to Phase 8 (Future Enhancements).
+**Goal:** Create client-side services to call the existing deployed Python microservices for sentiment analysis and stock predictions.
 
-**Rationale:** For MVP, the bag-of-words sentiment analysis from Task 3 is sufficient. A local mock service allows development without AWS complexity, cold start latency, or costs. Production FinBERT deployment can be added later without changing the client-side code.
+**Rationale:** The original Android app uses two Python microservices deployed on Google Cloud Run. For Phases 1-7, we'll continue using these **existing, functional services** rather than migrating them to AWS Lambda. This allows us to:
+- Focus entirely on the React Native client migration
+- Validate the client works with proven, battle-tested ML models
+- Deliver value faster (no backend migration needed for MVP)
+- Defer complex backend migration to Phase 8+
 
 **Files to Create:**
-- `Migration/local-services/sentiment-server/` (Local development server)
-  - `server.py` - Flask or Express.js server
-  - `requirements.txt` or `package.json`
-- `Migration/expo-project/src/services/api/sentiment.service.ts` (client-side)
-- `Migration/expo-project/src/services/api/prediction.service.ts` (client-side)
+- `src/services/api/sentiment.service.ts` - Client for FinBERT sentiment analysis
+- `src/services/api/prediction.service.ts` - Client for logistic regression predictions
+- `src/types/api.types.ts` - TypeScript interfaces for API requests/responses
+- `src/constants/api.constants.ts` - API endpoint URLs and configuration
 
 **Prerequisites:**
-- Task 3 complete (bag-of-words sentiment analysis implemented)
-- Python 3.9+ or Node.js 20+ installed (for local server)
+- Task 1-3 complete (Tiingo, Polygon, bag-of-words implemented)
+- Understanding of the existing microservice contracts (see below)
 
 **Implementation Steps:**
 
-1. **Analyze the Android Microservice Contract**
-   - Read `SetWordCountData.java`, find the microservice call (around line 200)
-   - Note the request format:
-     ```json
-     {
-       "text": "Article content here...",
-       "ticker": "AAPL"
-     }
-     ```
-   - Response format (from `JsonReturn.java`):
-     ```json
-     {
-       "sentiment": "POS" | "NEUT" | "NEG",
-       "score": 0.85
-     }
-     ```
+1. **Understand the Existing Microservice Contracts**
 
-2. **Create Local Mock Server (Flask Example)**
-   - Create directory: `Migration/local-services/sentiment-server/`
-   - Create `server.py`:
-     ```python
-     from flask import Flask, request, jsonify
-     import random
-
-     app = Flask(__name__)
-
-     @app.route('/sentiment', methods=['POST'])
-     def analyze_sentiment():
-         data = request.json
-         text = data.get('text', '')
-
-         # Mock sentiment (random for testing)
-         # In reality, you could call your bag-of-words logic here
-         sentiments = ['POS', 'NEUT', 'NEG']
-         sentiment = random.choice(sentiments)
-         score = random.uniform(0.6, 0.95)
-
-         return jsonify({
-             'sentiment': sentiment,
-             'score': score
-         })
-
-     @app.route('/predict', methods=['POST'])
-     def predict_movement():
-         data = request.json
-
-         # Mock predictions (random for testing)
-         return jsonify({
-             'predictions': {
-                 'oneDay': random.uniform(-0.05, 0.05),
-                 'twoWeeks': random.uniform(-0.10, 0.10),
-                 'oneMonth': random.uniform(-0.15, 0.15)
-             }
-         })
-
-     if __name__ == '__main__':
-         app.run(host='localhost', port=3000, debug=True)
-     ```
-   - Create `requirements.txt`:
-     ```
-     flask==3.0.0
-     ```
-   - Run: `pip install -r requirements.txt && python server.py`
-   - Server runs on `http://localhost:3000`
-
-3. **Create Client-Side Services**
-   - File: `src/services/api/sentiment.service.ts`
-   - Implement function:
+   **Service 1: Sentiment Analysis (FinBERT)**
+   - **URL**: `https://stocks-backend-sentiment-f3jmjyxrpq-uc.a.run.app`
+   - **Method**: POST
+   - **Request** (from `SetWordCountData.java` line 285-286):
      ```typescript
-     import axios from 'axios';
-
-     const SENTIMENT_ENDPOINT = process.env.SENTIMENT_ENDPOINT || 'http://localhost:3000/sentiment';
-
-     export interface SentimentResult {
-       sentiment: 'POS' | 'NEUT' | 'NEG';
-       score: number;
-     }
-
-     export async function analyzeSentiment(text: string, ticker: string): Promise<SentimentResult> {
-       const response = await axios.post(SENTIMENT_ENDPOINT, { text, ticker });
-       return response.data;
+     {
+       text: string[],  // Array of sentences from news article
+       hash: string     // Hash of the article body
      }
      ```
-
-   - File: `src/services/api/prediction.service.ts`
-   - Implement function:
+   - **Response** (from `JsonReturn.java`):
      ```typescript
-     import axios from 'axios';
-
-     const PREDICTION_ENDPOINT = process.env.PREDICTION_ENDPOINT || 'http://localhost:3000/predict';
-
-     export interface PredictionResult {
-       predictions: {
-         oneDay: number;
-         twoWeeks: number;
-         oneMonth: number;
-       };
+     {
+       positive: [string, string],  // [count, confidence_score]
+       neutral: [string, string],
+       negative: [string, string],
+       hash: string
      }
+     ```
+   - **Example**:
+     ```
+     Request: { "text": ["Stock prices rising.", "Market optimistic."], "hash": "12345" }
+     Response: { "positive": ["2", "0.85"], "neutral": ["0", "0.0"], "negative": ["0", "0.0"], "hash": "12345" }
+     ```
 
-     export async function getPredictions(ticker: string, stockData: any[], sentimentData: any[]): Promise<PredictionResult> {
-       const response = await axios.post(PREDICTION_ENDPOINT, { ticker, stockData, sentimentData });
+   **Service 2: Stock Predictions (Logistic Regression)**
+   - **URL**: `https://stocks-f3jmjyxrpq-uc.a.run.app`
+   - **Method**: POST
+   - **Request** (from `SetPortfolioData.java` line 133):
+     ```typescript
+     {
+       close: number[],      // Closing prices
+       volume: number[],     // Trading volumes
+       positive: number[],   // Positive word counts
+       negative: number[],   // Negative word counts
+       sentiment: number[], // Sentiment scores
+       ticker: string
+     }
+     ```
+   - **Response**:
+     ```typescript
+     {
+       next: string,   // 1-day prediction
+       week: string,   // 2-week prediction
+       month: string,  // 1-month prediction
+       ticker: string
+     }
+     ```
+
+2. **Create TypeScript Types**
+
+   File: `src/types/api.types.ts`
+   ```typescript
+   export interface SentimentAnalysisRequest {
+     text: string[];
+     hash: string;
+   }
+
+   export interface SentimentAnalysisResponse {
+     positive: [string, string];
+     neutral: [string, string];
+     negative: [string, string];
+     hash: string;
+   }
+
+   export interface StockPredictionRequest {
+     close: number[];
+     volume: number[];
+     positive: number[];
+     negative: number[];
+     sentiment: number[];
+     ticker: string;
+   }
+
+   export interface StockPredictionResponse {
+     next: string;
+     week: string;
+     month: string;
+     ticker: string;
+   }
+   ```
+
+3. **Create Service Configuration**
+
+   File: `src/constants/api.constants.ts`
+   ```typescript
+   export const API_ENDPOINTS = {
+     SENTIMENT_ANALYSIS: 'https://stocks-backend-sentiment-f3jmjyxrpq-uc.a.run.app',
+     STOCK_PREDICTION: 'https://stocks-f3jmjyxrpq-uc.a.run.app',
+     TIINGO_BASE: 'https://api.tiingo.com',
+     POLYGON_BASE: 'https://api.polygon.io',
+   } as const;
+
+   export const API_TIMEOUTS = {
+     SENTIMENT: 30000,  // 30s (FinBERT can be slow on cold start)
+     PREDICTION: 15000, // 15s
+     TIINGO: 10000,
+     POLYGON: 10000,
+   } as const;
+   ```
+
+4. **Implement Sentiment Analysis Service**
+
+   File: `src/services/api/sentiment.service.ts`
+   ```typescript
+   import axios from 'axios';
+   import { API_ENDPOINTS, API_TIMEOUTS } from '@/constants/api.constants';
+   import type { SentimentAnalysisRequest, SentimentAnalysisResponse } from '@/types/api.types';
+
+   export async function analyzeSentiment(
+     articleText: string,
+     hash: string
+   ): Promise<SentimentAnalysisResponse> {
+     // Split article into sentences (matches Android logic)
+     const sentences = articleText
+       .replace(/["',]/g, '')  // Remove quotes and commas
+       .split(/(?<=[.?])\s+/);  // Split on sentence boundaries
+
+     const request: SentimentAnalysisRequest = {
+       text: sentences,
+       hash: hash,
+     };
+
+     try {
+       const response = await axios.post<SentimentAnalysisResponse>(
+         API_ENDPOINTS.SENTIMENT_ANALYSIS,
+         request,
+         {
+           timeout: API_TIMEOUTS.SENTIMENT,
+           headers: { 'Content-Type': 'application/json' },
+         }
+       );
+
        return response.data;
+     } catch (error) {
+       console.error('[SentimentService] Error analyzing sentiment:', error);
+
+       // Handle cold start timeouts gracefully
+       if (axios.isAxiosError(error) && error.code === 'ECONNABORTED') {
+         throw new Error('Sentiment analysis timed out (service cold start). Please try again.');
+       }
+
+       throw new Error(`Sentiment analysis failed: ${error}`);
      }
-     ```
+   }
 
-4. **Set Up Environment Variables**
-   - Create `.env` file in `Migration/expo-project/`:
-     ```
-     SENTIMENT_ENDPOINT=http://localhost:3000/sentiment
-     PREDICTION_ENDPOINT=http://localhost:3000/predict
-     ```
-   - Install: `npm install react-native-dotenv`
-   - Configure to load environment variables
+   /**
+    * Convert sentiment response to simplified format
+    */
+   export function parseSentimentResult(response: SentimentAnalysisResponse): {
+     sentiment: 'POS' | 'NEUT' | 'NEG';
+     score: number;
+   } {
+     const posCount = parseInt(response.positive[0]);
+     const neutCount = parseInt(response.neutral[0]);
+     const negCount = parseInt(response.negative[0]);
 
-5. **Test the Integration**
-   - Start local server: `python server.py`
-   - Test sentiment endpoint: `curl -X POST http://localhost:3000/sentiment -H "Content-Type: application/json" -d '{"text":"Great news!","ticker":"AAPL"}'`
-   - Test prediction endpoint similarly
-   - Verify client-side service can call local server
+     let sentiment: 'POS' | 'NEUT' | 'NEG';
+     let score: number;
+
+     if (posCount > neutCount && posCount > negCount) {
+       sentiment = 'POS';
+       score = parseFloat(response.positive[1]);
+     } else if (negCount > neutCount) {
+       sentiment = 'NEG';
+       score = parseFloat(response.negative[1]);
+     } else {
+       sentiment = 'NEUT';
+       score = parseFloat(response.neutral[1]);
+     }
+
+     return { sentiment, score };
+   }
+   ```
+
+5. **Implement Stock Prediction Service**
+
+   File: `src/services/api/prediction.service.ts`
+   ```typescript
+   import axios from 'axios';
+   import { API_ENDPOINTS, API_TIMEOUTS } from '@/constants/api.constants';
+   import type { StockPredictionRequest, StockPredictionResponse } from '@/types/api.types';
+
+   export async function getStockPredictions(
+     ticker: string,
+     closePrices: number[],
+     volumes: number[],
+     positiveCounts: number[],
+     negativeCounts: number[],
+     sentimentScores: number[]
+   ): Promise<StockPredictionResponse> {
+     const request: StockPredictionRequest = {
+       ticker,
+       close: closePrices,
+       volume: volumes,
+       positive: positiveCounts,
+       negative: negativeCounts,
+       sentiment: sentimentScores,
+     };
+
+     try {
+       const response = await axios.post<StockPredictionResponse>(
+         API_ENDPOINTS.STOCK_PREDICTION,
+         request,
+         {
+           timeout: API_TIMEOUTS.PREDICTION,
+           headers: { 'Content-Type': 'application/json' },
+         }
+       );
+
+       return response.data;
+     } catch (error) {
+       console.error('[PredictionService] Error getting predictions:', error);
+       throw new Error(`Stock prediction failed: ${error}`);
+     }
+   }
+   ```
+
+6. **Add Error Handling and Retry Logic**
+
+   - Implement exponential backoff for cold start timeouts
+   - Add circuit breaker pattern if services are frequently down
+   - Provide fallback to bag-of-words sentiment if FinBERT service fails
+   - Cache successful responses to reduce API calls
+
+7. **Test Integration with Real Services**
+
+   - Use curl or Postman to verify endpoints are accessible:
+     ```bash
+     curl -X POST https://stocks-backend-sentiment-f3jmjyxrpq-uc.a.run.app \
+       -H "Content-Type: application/json" \
+       -d '{"text":["Stock prices rising."],"hash":"12345"}'
+     ```
+   - Verify responses match expected format
+   - Test with various article lengths to understand latency
+   - Note: First request may be slow (cold start ~3-5 seconds)
 
 **Verification Checklist:**
-- [ ] Local server starts without errors on port 3000
-- [ ] Can send test request and receive mock sentiment response
-- [ ] Can send test request and receive mock prediction response
-- [ ] Client-side services can call local server successfully
-- [ ] Environment variables load correctly
+- [ ] TypeScript types created for both API contracts
+- [ ] API endpoints configured in constants
+- [ ] Sentiment analysis service implemented with timeout handling
+- [ ] Prediction service implemented with error handling
+- [ ] Successfully tested both endpoints with curl/Postman
+- [ ] Services return data in expected format
+- [ ] Cold start timeout handled gracefully (30s timeout)
 
 **Testing Instructions:**
-- Test local server endpoints with curl commands
-- Test with sample news article text
-- Verify mock responses match expected format (JSON contract)
-- Integration test: Call from React Native app (Phase 3+)
+
+1. **Test Sentiment Service (curl)**:
+   ```bash
+   curl -X POST https://stocks-backend-sentiment-f3jmjyxrpq-uc.a.run.app \
+     -H "Content-Type: application/json" \
+     -d '{"text":["Apple stock rises on positive earnings.","Investors optimistic about growth."],"hash":"test123"}'
+   ```
+   Expected: `{ "positive": ["2", "0.87"], "neutral": ["0", "0.0"], "negative": ["0", "0.0"], "hash": "test123" }`
+
+2. **Test Prediction Service (curl)**:
+   ```bash
+   curl -X POST https://stocks-f3jmjyxrpq-uc.a.run.app \
+     -H "Content-Type: application/json" \
+     -d '{"ticker":"AAPL","close":[150,152,151],"volume":[1000000,1100000,1050000],"positive":[5,3,7],"negative":[2,1,1],"sentiment":[0.8,0.75,0.85]}'
+   ```
+   Expected: `{ "next": "0.02", "week": "0.05", "month": "0.10", "ticker": "AAPL" }`
+
+3. **Integration Test**:
+   - Call services from React Native app (Phase 3+)
+   - Verify responses are parsed correctly
+   - Test with actual news articles and stock data
+   - Confirm cold start delay is acceptable (~3-5 seconds first call)
 
 **Commit Message Template:**
 ```
-feat(services): create local mock sentiment and prediction services
+feat(services): integrate with existing Python microservices for sentiment and predictions
 
-- Created Flask-based local server for sentiment analysis endpoint
-- Created mock prediction endpoint for stock movement predictions
-- Implemented client-side sentiment.service and prediction.service
-- Configured environment variables for endpoint URLs
-- Local server runs on http://localhost:3000 for MVP development
+- Created sentiment.service.ts to call FinBERT microservice on Google Cloud Run
+- Created prediction.service.ts to call logistic regression microservice
+- Added TypeScript interfaces for API request/response contracts
+- Implemented error handling for cold starts and timeouts (30s for sentiment, 15s for prediction)
+- Added sentence splitting logic matching Android implementation
+- Configured API endpoints in constants for easy switching to Lambda in Phase 8
+- Services ready for integration in data sync pipeline (Task 5)
 ```
 
-**Estimated Tokens:** ~12,000
+**Estimated Tokens:** ~15,000
 
 ---
 
-**Advanced Options (Future Enhancements - Phase 8+):**
+**Important Notes:**
 
-If you need production-grade FinBERT sentiment or wish to deploy early:
+⚠️ **Service Availability**: The existing Python microservices are deployed on Google Cloud Run. If these services become unavailable:
+1. Use the bag-of-words sentiment analysis (Task 3) as fallback
+2. Return default prediction values (0.0 for all timeframes)
+3. Log errors for debugging
+4. Consider deploying your own instances (Phase 8)
 
-**Option A: Deploy to AWS Lambda**
-- Create Lambda function with FinBERT model (ProsusAI/finbert)
-- Use Serverless Framework or AWS CDK for deployment
-- Handle cold starts (3-5 seconds) with provisioned concurrency
-- Update environment variables to point to Lambda URLs
-- See tech lead review feedback for detailed Lambda code example
+🔒 **Security**: For MVP, calling services directly from the client is acceptable. For production (before public release), consider:
+1. Creating a thin API proxy (Cloudflare Worker or simple Express.js server)
+2. Hiding the microservice URLs
+3. Adding rate limiting
+4. Implementing API key rotation
 
-**Option B: Use Existing Microservice**
-- If `stocks-backend-sentiment-f3jmjyxrpq-uc.a.run.app` is still available
-- Update `SENTIMENT_ENDPOINT` to point to existing service
-- Skip local server entirely
-
-**Note:** Client-side services are designed to be endpoint-agnostic. Simply update environment variables to switch from local mock to production services without code changes.
+**Phase 8+ Migration Path**: When migrating these services to AWS Lambda, only the `API_ENDPOINTS` constants need to change. All service logic remains identical.
 
 ---
 

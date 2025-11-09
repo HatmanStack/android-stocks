@@ -1,39 +1,44 @@
 # Android Stock Sentiment App → React Native Migration Plan
 
-**Migration Goal:** Port the Android (Java) Stock Sentiment Analysis app to React Native using Expo, achieving full feature parity.
+**Migration Goal:** Port the full-stack Android Stock Sentiment Analysis application (client + backend microservices) to React Native + AWS Lambda architecture.
+
+**Migration Strategy:** **Client-first approach** - Migrate the Android app to React Native (Phases 1-7) using existing Python microservices, then migrate backend to AWS Lambda (Phase 8+).
 
 ---
 
 ## Overview
 
-This is a comprehensive migration plan for converting a stock sentiment analysis Android application to React Native with Expo. The app analyzes news articles using sentiment analysis (bag-of-words + FinBERT) to predict stock movements.
+This is a comprehensive migration plan for a stock sentiment analysis application consisting of an Android client and Python backend microservices. The app analyzes news articles using NLP and machine learning to predict stock movements.
 
-### Current App (Android/Java)
+### Current Architecture (Android + Python)
 
-**Core Features:**
-- Fetch historical stock prices (Tiingo API)
-- Fetch news articles (Polygon.io API)
-- Sentiment analysis using 1200+ positive/negative words
-- FinBERT deep learning sentiment analysis (via microservice)
-- Multivariate logistic regression for price predictions
+**Client: Android App (Java)**
 - 5 screens: Search, Price History, Sentiment Analysis, News, Portfolio
+- Local SQLite database with 6 entities (Room ORM)
+- Fetches stock prices (Tiingo API) and news (Polygon.io API)
+- Calls Python microservices for ML predictions
 
-**Technical Stack:**
-- Language: Java
-- Architecture: MVVM with Room database
-- UI: Fragments with ViewPager
-- Data: Room (SQLite), 6 entities
-- APIs: Tiingo, Polygon.io, custom sentiment/prediction microservices
+**Backend: Python Microservices (Google Cloud Run)**
+1. **Sentiment Analysis Service** - FinBERT-based NLP for financial text
+   - URL: `https://stocks-backend-sentiment-f3jmjyxrpq-uc.a.run.app`
+   - Technology: Python + Hugging Face FinBERT
+2. **Prediction Service** - Multivariate logistic regression
+   - URL: `https://stocks-f3jmjyxrpq-uc.a.run.app`
+   - Technology: Python + Scikit-learn
 
-### New App (React Native/Expo)
+### Target Architecture (React Native + AWS Lambda)
 
-**Target:**
-- Full feature parity with Android app
-- Modern React Native architecture
-- Expo managed workflow with custom development builds
-- TypeScript with strict mode
-- SQLite for local storage
-- AWS Lambda for ML services (sentiment + predictions)
+**Phases 1-7: Client Migration (Use Existing Backend)**
+- **Client**: React Native (Expo) with TypeScript
+- **Local Storage**: SQLite (expo-sqlite) matching Android Room schema
+- **Backend**: Continue using deployed Python microservices (no changes)
+- **APIs**: Direct integration with Tiingo, Polygon.io, and existing ML services
+
+**Phase 8+: Backend Migration (Future)**
+- **Backend**: Migrate Python microservices to AWS Lambda
+- **API Gateway**: AWS API Gateway for unified endpoint
+- **Client**: Update endpoint URLs only (minimal code changes)
+- **Benefits**: Better control, rate limiting, API key protection
 
 ---
 
@@ -51,7 +56,7 @@ Before starting implementation:
 ### API Keys (Free Tier)
 - **Tiingo API**: https://api.tiingo.com/ (500 req/hour)
 - **Polygon.io API**: https://polygon.io/ (5 req/min)
-- **AWS Account**: For Lambda deployment (or local testing)
+- **Note**: AWS Account not required until Phase 8 (backend migration)
 
 ### Knowledge Requirements
 - TypeScript fundamentals
@@ -65,17 +70,26 @@ Before starting implementation:
 
 ## Phase Summary
 
+### Client Migration (Phases 1-7)
+
 | Phase | Goal | Estimated Tokens | Key Deliverables |
 |-------|------|-----------------|------------------|
-| **Phase 0** | Foundation & Architecture | N/A | ADRs, tech stack, patterns, conventions |
+| **Phase 0** | Foundation & Architecture | N/A | ADRs, tech stack, patterns, conventions, migration strategy |
 | **Phase 1** | Project Setup & Data Layer | ~95,000 | Expo project, SQLite database, repositories, mock data |
-| **Phase 2** | Core Data Processing | ~98,000 | API services, sentiment analysis, AWS Lambda, sync pipeline |
+| **Phase 2** | Core Data Processing | ~98,000 | API services (Tiingo, Polygon), integrate existing microservices, sync pipeline |
 | **Phase 3** | UI Foundation & Navigation | ~92,000 | Navigation, theme, shared components, contexts |
 | **Phase 4** | Search & Portfolio Screens | ~45,000 | Search functionality, portfolio management |
 | **Phase 5** | Stock Detail Screens | ~60,000 | Price, Sentiment, News tabs with full data display |
 | **Phase 6** | Animations & Polish | ~35,000 | Transitions, micro-interactions, accessibility, performance |
 | **Phase 7** | Testing & Deployment | ~45,000 | Tests, CI/CD, production builds, documentation |
-| **Total** | | **~470,000** | Fully functional React Native app |
+| **Client Total** | | **~470,000** | **Fully functional React Native app** |
+
+### Backend Migration (Phase 8+ - Future)
+
+| Phase | Goal | Estimated Tokens | Key Deliverables |
+|-------|------|-----------------|------------------|
+| **Phase 8** | Backend Migration to AWS Lambda | TBD | Sentiment Lambda, Prediction Lambda, API Gateway, client endpoint updates |
+| **Phase 9** | Advanced Features (Optional) | TBD | On-device ML (ONNX), charts, push notifications, dark mode |
 
 ---
 

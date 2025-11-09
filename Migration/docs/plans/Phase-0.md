@@ -102,7 +102,76 @@ All new files are created in the `Migration/` directory:
 
 ---
 
-### ADR-002: Data Storage Strategy
+### ADR-002: Phased Migration Strategy (Client-First, Backend-Later)
+
+**Decision:** Migrate the client application (Android → React Native) first using the existing Python microservices, then migrate the backend (Python microservices → AWS Lambda) in a subsequent phase.
+
+**Context:**
+
+The original architecture consists of:
+1. **Android Client App** (Java) - Data fetching, UI, local storage
+2. **Python Sentiment Microservice** - FinBERT-based sentiment analysis at `https://stocks-backend-sentiment-f3jmjyxrpq-uc.a.run.app`
+3. **Python Prediction Microservice** - Multivariate logistic regression at `https://stocks-f3jmjyxrpq-uc.a.run.app`
+
+**Migration Approach:**
+
+**Phase 1-7 (Client Migration):**
+- Migrate Android app to React Native
+- Call the **existing** Python microservices at their current URLs
+- Maintain API contracts (JSON request/response formats)
+- Focus: Feature parity for the mobile client
+
+**Phase 8+ (Backend Migration - Future):**
+- Migrate Python microservices to AWS Lambda
+- Set up AWS API Gateway
+- Protect API keys server-side
+- Add rate limiting and authentication
+- Update client to point to new Lambda endpoints
+
+**Rationale:**
+
+✅ **Lower Risk**: Validate each layer independently before migration
+✅ **Faster Time-to-Value**: Ship working React Native app sooner
+✅ **Preserve Phase 1 Work**: Completed data layer implementation remains valid
+✅ **Existing Services Work**: Deployed microservices are functional and stable
+✅ **Independent Testing**: Can verify client works with known-good backend
+✅ **Incremental Approach**: Migrate one component at a time
+
+**API Integration for Phases 1-7:**
+
+The React Native client will call:
+- **Sentiment Analysis**: `POST https://stocks-backend-sentiment-f3jmjyxrpq-uc.a.run.app`
+  - Request: `{ "text": string[], "hash": string }`
+  - Response: `{ "positive": [count, score], "neutral": [count, score], "negative": [count, score], "hash": string }`
+
+- **Stock Predictions**: `POST https://stocks-f3jmjyxrpq-uc.a.run.app`
+  - Request: `{ "close": number[], "volume": number[], "positive": number[], "negative": number[], "sentiment": number[], "ticker": string }`
+  - Response: `{ "next": string, "week": string, "month": string, "ticker": string }`
+
+**Security Considerations:**
+
+⚠️ **For MVP**: Direct calls from client to microservices are acceptable for development and initial testing.
+
+🔒 **For Production** (before public release):
+- Create a thin API proxy (Node.js/Express or Cloudflare Worker)
+- Proxy requests to microservices to hide endpoints
+- Add rate limiting to prevent abuse
+- Optional: Add API key rotation mechanism
+
+**Constraints:**
+- Existing Python microservices must remain available during Phase 1-7
+- API contracts cannot change until backend migration (Phase 8+)
+- Client must handle microservice timeouts gracefully (existing services can be slow on cold starts)
+
+**Future Backend Migration** (Phase 8+):
+- Port Python sentiment analysis logic to AWS Lambda (using FinBERT model)
+- Port logistic regression to separate Lambda function
+- Client code changes will be minimal (update endpoint URLs only)
+- See Phase 8 outline for detailed backend migration roadmap
+
+---
+
+### ADR-003: Data Storage Strategy
 
 **Decision:** Use `expo-sqlite` (SQLite) for local data persistence, mirroring the Android Room database structure.
 
@@ -132,49 +201,70 @@ Create SQL initialization scripts in `/src/database/migrations/` to set up table
 
 ---
 
-### ADR-003: Sentiment Analysis & ML Backend Strategy
+### ADR-004: Sentiment Analysis & ML Backend Strategy
 
-**Decision:** Dual-path approach with AWS Lambda as primary, on-device ML as future optimization.
+**Decision:** Use existing Python microservices for Phases 1-7, migrate to AWS Lambda in Phase 8+.
 
-**Primary Approach: AWS Lambda Functions**
-- **FinBERT Sentiment Analysis**: Deploy existing microservice logic to AWS Lambda
-- **Prediction Model**: Port logistic regression model to AWS Lambda
-- **Benefits**:
-  - Reliable, proven architecture (existing microservices work)
-  - Offloads computation from mobile device
-  - Easier model updates without app releases
-  - Consistent results across platforms
+**Phases 1-7 Approach: Existing Python Microservices**
 
-**API Gateway Setup:**
-```
-POST /sentiment-analysis
-  Body: { text: string, ticker: string }
-  Returns: { sentiment: "POS" | "NEUT" | "NEG", score: number }
+The React Native client will integrate with the **current deployed microservices**:
 
-POST /predict-movement
-  Body: { ticker: string, stockData: [...], sentimentData: [...] }
-  Returns: { predictions: { oneDay: number, twoWeeks: number, oneMonth: number } }
-```
+1. **Sentiment Analysis Service**
+   - URL: `https://stocks-backend-sentiment-f3jmjyxrpq-uc.a.run.app`
+   - Technology: Python + FinBERT (Hugging Face)
+   - Request: `{ "text": string[], "hash": string }`
+   - Response: `{ "positive": [count, score], "neutral": [count, score], "negative": [count, score], "hash": string }`
+   - Deployed on: Google Cloud Run
 
-**Future Optimization: On-Device ML (Phase 8+)**
+2. **Prediction Service**
+   - URL: `https://stocks-f3jmjyxrpq-uc.a.run.app`
+   - Technology: Python + Scikit-learn (Multivariate Logistic Regression)
+   - Request: `{ "close": number[], "volume": number[], "positive": number[], "negative": number[], "sentiment": number[], "ticker": string }`
+   - Response: `{ "next": string, "week": string, "month": string, "ticker": string }`
+   - Deployed on: Google Cloud Run
+
+**Benefits:**
+- ✅ Services are already deployed and functional
+- ✅ No backend migration needed for MVP
+- ✅ Faster development (focus on client only)
+- ✅ Proven, battle-tested ML models
+- ✅ Can validate React Native client independently
+
+**Constraints:**
+- Services are external dependencies (could have downtime)
+- Cold start latency on Cloud Run (~3-5 seconds)
+- Client must handle timeouts gracefully
+- No control over service rate limiting
+
+**Phase 8+ Approach: Migrate to AWS Lambda**
+
+After completing the React Native client (Phases 1-7), migrate backend:
+
+1. **AWS Lambda Functions**:
+   - Port Python sentiment analysis logic to Lambda (using FinBERT)
+   - Port logistic regression to separate Lambda function
+   - Add AWS API Gateway for unified endpoint
+   - Implement rate limiting, authentication, API key protection
+
+2. **Client Updates**:
+   - Update service endpoints to point to API Gateway
+   - Minimal code changes (URL configuration only)
+   - Maintain same JSON request/response contracts
+
+**Local Development / Testing:**
+- Mock both microservice responses for unit/integration tests
+- Use bag-of-words sentiment as offline fallback (Phase 2 implementation)
+- Test with actual services in staging environment
+
+**Future Optimization (Phase 9+): On-Device ML**
 - Convert FinBERT to ONNX format
 - Use `onnxruntime-react-native` (requires custom development build)
-- Provides offline capability and reduces API costs
-- **Complexity**: Requires model quantization (4-bit), bundle size management (~50-100MB)
-
-**Development/Testing:**
-- Mock data generators for unit tests
-- Local bag-of-words sentiment (using vocabulary arrays) as fallback
-- API mocking with MSW (Mock Service Worker) for integration tests
-
-**Alternatives Considered:**
-- **TensorFlow.js**: Poor React Native support, limited BERT model compatibility
-- **Transformers.js**: Excellent for web, but limited React Native integration (react-native-transformers deprecated July 2025)
-- **Cloud-only (no on-device)**: Acceptable MVP approach, limits offline functionality
+- Provides offline capability and eliminates API dependency
+- **Complexity**: Model quantization, ~50-100MB bundle size
 
 ---
 
-### ADR-004: State Management
+### ADR-005: State Management
 
 **Decision:** Use React Context API + Custom Hooks for global state, with React Query for server state.
 
@@ -210,7 +300,7 @@ ThemeContext: colorScheme, animations
 
 ---
 
-### ADR-005: API Integration Layer
+### ADR-006: API Integration Layer
 
 **Decision:** Create abstraction layer for external APIs with retry logic, caching, and mock support.
 
@@ -254,7 +344,7 @@ ThemeContext: colorScheme, animations
 
 ---
 
-### ADR-006: Navigation Structure
+### ADR-007: Navigation Structure
 
 **Decision:** Use React Navigation 7.x with nested navigators (Tab + Stack).
 
@@ -291,7 +381,7 @@ Root Stack Navigator
 
 ---
 
-### ADR-007: Vocabulary Data Format
+### ADR-008: Vocabulary Data Format
 
 **Decision:** Convert XML string arrays to flat JSON structure with letter-based indexing.
 
