@@ -3,7 +3,7 @@
  */
 
 import { NewsDetails } from '@/types/database.types';
-import { formatDateForDB, getDatesInRange } from '@/utils/date/dateUtils';
+import { formatDateForDB } from '@/utils/date/dateUtils';
 
 const sampleTitles = [
   '{TICKER} reports strong quarterly earnings',

@@ -50,7 +50,7 @@ export function isValidDateRange(startDate: string, endDate: string): boolean {
     }
 
     return start <= end;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -68,7 +68,7 @@ export function validateArticleURL(url: string): boolean {
   try {
     const urlObj = new URL(url);
     return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
-  } catch (error) {
+  } catch {
     return false;
   }
 }
