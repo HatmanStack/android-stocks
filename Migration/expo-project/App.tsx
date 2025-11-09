@@ -3,14 +3,16 @@
  * Sets up providers, navigation, and app initialization
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import type { NavigationState } from '@react-navigation/native';
 import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Navigation
 import { RootNavigator } from './src/navigation/RootNavigator';
@@ -25,6 +27,9 @@ import { theme } from './src/theme/theme';
 // Database
 import { initializeDatabase } from './src/database/database';
 
+// Constants
+const NAVIGATION_STATE_KEY = '@navigation_state';
+
 // Create QueryClient instance
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,6 +43,9 @@ const queryClient = new QueryClient({
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
+  const [initialNavigationState, setInitialNavigationState] = useState<NavigationState | undefined>();
+  const routeNameRef = useRef<string | undefined>(undefined);
+  const navigationRef = useRef<any>(null);
 
   useEffect(() => {
     async function initialize() {
@@ -45,6 +53,15 @@ export default function App() {
         // Initialize database
         await initializeDatabase();
         console.log('[App] Database initialized successfully');
+
+        // Restore navigation state
+        const savedStateString = await AsyncStorage.getItem(NAVIGATION_STATE_KEY);
+        const savedState = savedStateString ? JSON.parse(savedStateString) : undefined;
+
+        if (savedState !== undefined) {
+          setInitialNavigationState(savedState);
+          console.log('[App] Navigation state restored');
+        }
 
         // Add any other initialization here (e.g., load fonts, check auth)
 
@@ -74,7 +91,43 @@ export default function App() {
           <QueryClientProvider client={queryClient}>
             <StockProvider>
               <PortfolioProvider>
-                <NavigationContainer>
+                <NavigationContainer
+                  ref={navigationRef as any}
+                  initialState={initialNavigationState}
+                  onStateChange={(state) => {
+                    // Save navigation state to AsyncStorage
+                    if (state) {
+                      AsyncStorage.setItem(NAVIGATION_STATE_KEY, JSON.stringify(state)).catch(
+                        (error) => {
+                          console.error('[App] Error saving navigation state:', error);
+                        }
+                      );
+                    }
+                  }}
+                  onReady={() => {
+                    routeNameRef.current = (navigationRef.current as any)?.getCurrentRoute?.()?.name;
+                  }}
+                  linking={{
+                    prefixes: ['stockapp://', 'https://stocks.app'],
+                    config: {
+                      screens: {
+                        MainTabs: {
+                          path: '',
+                          screens: {
+                            Search: 'search',
+                            StockDetail: {
+                              path: 'stock/:ticker',
+                              parse: {
+                                ticker: (ticker: string) => ticker.toUpperCase(),
+                              },
+                            },
+                            Portfolio: 'portfolio',
+                          },
+                        },
+                      },
+                    },
+                  } as any}
+                >
                   <RootNavigator />
                   <StatusBar style="auto" />
                 </NavigationContainer>
