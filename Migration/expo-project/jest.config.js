@@ -9,9 +9,13 @@ module.exports = {
     '!src/**/*.test.{ts,tsx}',
     '!src/**/__tests__/**',
   ],
+  setupFiles: ['<rootDir>/jest.setup.js'],
   setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
   testPathIgnorePatterns: ['/node_modules/', '/android/', '/ios/'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^expo$': '<rootDir>/__mocks__/expo.ts',
+    'expo-sqlite': '<rootDir>/__mocks__/expo-sqlite.ts',
+    'expo-asset': '<rootDir>/__mocks__/expo-asset.ts',
   },
 };
