@@ -11,6 +11,73 @@ This phase establishes the architectural foundation for migrating the Android St
 
 ---
 
+## Knowledge Requirements
+
+**Baseline Assumptions:**
+
+This plan is designed for an engineer with:
+- **Zero context on THIS specific Android app**: You won't need to deeply understand the Java code. The plan provides all necessary references and explanations.
+- **BUT: Familiarity with React Native development**: You should be comfortable with React Native basics, TypeScript, and mobile app development patterns.
+
+**Required Technical Knowledge:**
+- React & React Hooks (useState, useEffect, useContext, custom hooks)
+- TypeScript fundamentals (interfaces, types, generics)
+- React Navigation library
+- SQLite and relational database concepts
+- REST API integration with axios
+- Git workflows and conventional commits
+
+**If Unfamiliar with React Native:**
+- Complete the [official React Native tutorial](https://reactnative.dev/docs/tutorial) first (2-3 hours)
+- Review [Expo documentation](https://docs.expo.dev/tutorial/introduction/) to understand Expo workflow
+- Familiarize yourself with React Query (TanStack Query) basics
+
+**Android Knowledge NOT Required:**
+- You don't need to be a Java or Android expert
+- The plan explains what each Android component does
+- All necessary references to Android code are provided with context
+
+---
+
+## File Path Conventions
+
+**Important:** Understanding path conventions is critical for navigating between the original Android codebase and the new React Native project.
+
+### Android Source Files (Read-Only Reference)
+
+All references to Android source files use paths relative to the repository root:
+
+- **Repository root:** `/home/user/android-stocks/`
+- **Android Java source:** `/home/user/android-stocks/app/src/main/java/gemenielabs/sentiment/`
+- **Android resources:** `/home/user/android-stocks/app/src/main/res/`
+
+**Example References in Tasks:**
+- When a task says: "Read `app/src/main/res/values/array.xml`"
+  - Full path: `/home/user/android-stocks/app/src/main/res/values/array.xml`
+- When a task says: "Read `SetWordCountData.java`"
+  - Full path: `/home/user/android-stocks/app/src/main/java/gemenielabs/sentiment/DataProcessing/SetWordCountData.java`
+
+### React Native Project (New Code)
+
+All new files are created in the `Migration/` directory:
+
+- **Migration root:** `/home/user/android-stocks/Migration/`
+- **Expo project root:** `/home/user/android-stocks/Migration/expo-project/`
+- **Source code:** `/home/user/android-stocks/Migration/expo-project/src/`
+- **Plan documents:** `/home/user/android-stocks/Migration/docs/plans/`
+
+**Working Directory:**
+- Most implementation tasks assume your current working directory is `Migration/expo-project/`
+- Commands like `npm install` should be run from this directory
+- File creation paths like `src/utils/sentiment/wordCounter.ts` are relative to `Migration/expo-project/`
+
+**Path Examples:**
+- Task says: "Create `src/data/sentiment-words.json`"
+  - Full path: `/home/user/android-stocks/Migration/expo-project/src/data/sentiment-words.json`
+  - Relative path (from `Migration/expo-project/`): `src/data/sentiment-words.json`
+
+---
+
 ## Architecture Decision Records (ADRs)
 
 ### ADR-001: React Native with Expo Framework

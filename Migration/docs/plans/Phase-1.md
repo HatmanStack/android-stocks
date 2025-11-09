@@ -152,18 +152,69 @@ feat(init): initialize Expo project with TypeScript and core dependencies
 
 **Implementation Steps:**
 
-1. **Read the Source XML File**
-   - Read the file at `app/src/main/res/values/array.xml` (relative to repo root)
-   - Identify all `positive_words_*` and `negative_words_*` string arrays
+1. **Install XML Parser**
+   - Navigate to `Migration/expo-project/`
+   - Run: `npm install xml2js @types/xml2js`
+   - This library will parse the Android XML file into JavaScript objects
 
-2. **Parse the XML Structure**
-   - Extract all words from each letter-based array (a-z for both positive and negative)
-   - Understand the pattern: `positive_words_a` contains all positive words starting with 'a'
-   - Note: Some arrays may be empty (e.g., `positive_words_k`, `negative_words_z`)
+2. **Create Extraction Script**
+   - Create directory: `Migration/expo-project/scripts/`
+   - Create file: `Migration/expo-project/scripts/extractSentimentWords.ts`
+   - Read the XML file using Node.js `fs` module
+   - Parse with xml2js
+   - Example:
+     ```typescript
+     import * as fs from 'fs';
+     import * as xml2js from 'xml2js';
+     import * as path from 'path';
 
-3. **Create JSON Structure**
-   - Follow the structure defined in Phase-0.md ADR-007
-   - Format:
+     // Path to Android XML file (relative to script location)
+     const xmlPath = path.resolve(__dirname, '../../../app/src/main/res/values/array.xml');
+     const outputPath = path.resolve(__dirname, '../src/data/sentiment-words.json');
+
+     const xmlContent = fs.readFileSync(xmlPath, 'utf8');
+     const parser = new xml2js.Parser();
+
+     parser.parseString(xmlContent, (err, result) => {
+       if (err) throw err;
+
+       const vocabulary = {
+         positive: {} as Record<string, string[]>,
+         negative: {} as Record<string, string[]>
+       };
+
+       // Extract positive words
+       for (let letter = 'a'.charCodeAt(0); letter <= 'z'.charCodeAt(0); letter++) {
+         const letterStr = String.fromCharCode(letter);
+         const arrayName = `positive_words_${letterStr}`;
+         const words = result.resources['string-array']
+           .find((arr: any) => arr.$.name === arrayName)?.item || [];
+         vocabulary.positive[letterStr] = words.map((w: any) => w.trim());
+       }
+
+       // Extract negative words (same pattern)
+       for (let letter = 'a'.charCodeAt(0); letter <= 'z'.charCodeAt(0); letter++) {
+         const letterStr = String.fromCharCode(letter);
+         const arrayName = `negative_words_${letterStr}`;
+         const words = result.resources['string-array']
+           .find((arr: any) => arr.$.name === arrayName)?.item || [];
+         vocabulary.negative[letterStr] = words.map((w: any) => w.trim());
+       }
+
+       // Write to JSON file
+       fs.writeFileSync(outputPath, JSON.stringify(vocabulary, null, 2));
+       console.log('Sentiment words extracted successfully!');
+     });
+     ```
+
+3. **Run the Extraction Script**
+   - From `Migration/expo-project/`, run: `npx ts-node scripts/extractSentimentWords.ts`
+   - Verify output file created at `src/data/sentiment-words.json`
+   - Check file size (should be ~25-35KB)
+
+4. **Verify JSON Structure**
+   - The script automatically creates the structure defined in Phase-0.md ADR-007
+   - Expected format:
      ```json
      {
        "positive": {
@@ -179,10 +230,7 @@ feat(init): initialize Expo project with TypeScript and core dependencies
        }
      }
      ```
-
-4. **Write JSON File**
-   - Save to `src/data/sentiment-words.json`
-   - Ensure proper formatting (use 2-space indentation for readability)
+   - File is already saved to `src/data/sentiment-words.json` with 2-space indentation
    - Verify file size (should be ~25-35KB)
 
 5. **Create TypeScript Typings**
@@ -632,9 +680,27 @@ feat(mock-data): create mock data generators for all entities
      - `formatDateForDB(date: Date): string` - Converts to ISO 8601 (YYYY-MM-DD)
      - `parseDateFromDB(dateString: string): Date` - Parses ISO 8601 to Date object
      - `getDateRangeFromSelection(days: number): { startDate: string, endDate: string }` - Returns date range (e.g., last 30 days)
+     - `getDatesInRange(startDate: string, endDate: string): string[]` - Returns array of all dates between start and end (inclusive), used in Phase 2 for sync orchestration
      - `isValidDateString(dateString: string): boolean` - Validates ISO 8601 format
      - `formatDisplayDate(date: Date | string, format?: string): string` - User-friendly display (e.g., "Jan 15, 2025")
    - Use `date-fns` library for all operations
+   - Implementation example for `getDatesInRange()`:
+     ```typescript
+     import { parseISO, addDays, formatISO } from 'date-fns';
+
+     export function getDatesInRange(startDate: string, endDate: string): string[] {
+       const dates: string[] = [];
+       let current = parseISO(startDate);
+       const end = parseISO(endDate);
+
+       while (current <= end) {
+         dates.push(formatDateForDB(current));
+         current = addDays(current, 1);
+       }
+
+       return dates;
+     }
+     ```
 
 2. **Create Input Validation Utilities**
    - File: `src/utils/validation/inputValidation.ts`

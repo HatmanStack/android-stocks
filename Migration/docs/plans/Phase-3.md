@@ -75,13 +75,106 @@ Create the foundation for all user interface elements. By the end of this phase,
    ```
 
 2. **Create Main Tab Navigator**
-   - Bottom tabs: Search, Stock Detail, Portfolio
-   - Icons from Expo Vector Icons
-   - Active/inactive colors from theme
+   - File: `src/navigation/MainTabNavigator.tsx`
+   - Implementation:
+     ```typescript
+     import React from 'react';
+     import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+     import { Ionicons } from '@expo/vector-icons';
+     import SearchScreen from '../screens/SearchScreen';
+     import StockDetailScreen from '../screens/StockDetailScreen';
+     import PortfolioScreen from '../screens/PortfolioScreen';
+     import { MainTabParamList } from './navigationTypes';
+
+     const Tab = createBottomTabNavigator<MainTabParamList>();
+
+     export function MainTabNavigator() {
+       return (
+         <Tab.Navigator
+           screenOptions={({ route }) => ({
+             tabBarIcon: ({ focused, color, size }) => {
+               let iconName: keyof typeof Ionicons.glyphMap;
+
+               if (route.name === 'Search') {
+                 iconName = focused ? 'search' : 'search-outline';
+               } else if (route.name === 'StockDetail') {
+                 iconName = focused ? 'stats-chart' : 'stats-chart-outline';
+               } else if (route.name === 'Portfolio') {
+                 iconName = focused ? 'briefcase' : 'briefcase-outline';
+               } else {
+                 iconName = 'help-outline';
+               }
+
+               return <Ionicons name={iconName} size={size} color={color} />;
+             },
+             tabBarActiveTintColor: '#1976D2', // Will use theme colors in Task 2
+             tabBarInactiveTintColor: '#9E9E9E',
+           })}
+         >
+           <Tab.Screen
+             name="Search"
+             component={SearchScreen}
+             options={{ title: 'Search Stocks' }}
+           />
+           <Tab.Screen
+             name="StockDetail"
+             component={StockDetailScreen}
+             options={{ title: 'Stock Details' }}
+           />
+           <Tab.Screen
+             name="Portfolio"
+             component={PortfolioScreen}
+             options={{ title: 'Portfolio' }}
+           />
+         </Tab.Navigator>
+       );
+     }
+     ```
 
 3. **Create Stock Detail Sub-Tabs**
-   - Material Top Tabs for horizontal swiping
-   - Match Android ViewPager behavior
+   - File: `src/navigation/StockDetailNavigator.tsx`
+   - Implementation:
+     ```typescript
+     import React from 'react';
+     import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+     import PriceScreen from '../screens/PriceScreen';
+     import SentimentScreen from '../screens/SentimentScreen';
+     import NewsScreen from '../screens/NewsScreen';
+     import { StockDetailTabParamList } from './navigationTypes';
+
+     const Tab = createMaterialTopTabNavigator<StockDetailTabParamList>();
+
+     export function StockDetailNavigator() {
+       return (
+         <Tab.Navigator
+           screenOptions={{
+             tabBarActiveTintColor: '#1976D2',
+             tabBarInactiveTintColor: '#666',
+             tabBarIndicatorStyle: { backgroundColor: '#1976D2' },
+             tabBarLabelStyle: { fontSize: 14, fontWeight: '600' },
+             tabBarStyle: { backgroundColor: '#fff' },
+           }}
+         >
+           <Tab.Screen
+             name="Price"
+             component={PriceScreen}
+             options={{ title: 'Price' }}
+           />
+           <Tab.Screen
+             name="Sentiment"
+             component={SentimentScreen}
+             options={{ title: 'Sentiment' }}
+           />
+           <Tab.Screen
+             name="News"
+             component={NewsScreen}
+             options={{ title: 'News' }}
+           />
+         </Tab.Navigator>
+       );
+     }
+     ```
+   - Material Top Tabs enable horizontal swiping (matches Android ViewPager)
 
 4. **Configure Navigation Persistence**
    - Save/restore navigation state using AsyncStorage

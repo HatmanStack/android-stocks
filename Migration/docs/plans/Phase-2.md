@@ -388,29 +388,26 @@ feat(sentiment): port bag-of-words sentiment analysis from Java
 
 ---
 
-### Task 4: Deploy AWS Lambda Functions (FinBERT Sentiment & Predictions)
+### Task 4: Set Up Sentiment Analysis Service (Local Mock for MVP)
 
-**Goal:** Deploy two AWS Lambda functions: one for FinBERT sentiment analysis, one for stock movement predictions. Alternatively, document how to set up local testing environment.
+**Goal:** Create a local mock sentiment service for development and MVP. AWS Lambda deployment for FinBERT is deferred to Phase 8 (Future Enhancements).
+
+**Rationale:** For MVP, the bag-of-words sentiment analysis from Task 3 is sufficient. A local mock service allows development without AWS complexity, cold start latency, or costs. Production FinBERT deployment can be added later without changing the client-side code.
 
 **Files to Create:**
-- `Migration/aws-lambda/sentiment-finbert/` (Lambda function directory)
-  - `handler.py` - Python handler for FinBERT
-  - `requirements.txt` - Dependencies (transformers, torch)
-  - `serverless.yml` or deployment config
-- `Migration/aws-lambda/predictions/` (Lambda function directory)
-  - `handler.py` - Prediction model handler
-  - `requirements.txt`
+- `Migration/local-services/sentiment-server/` (Local development server)
+  - `server.py` - Flask or Express.js server
+  - `requirements.txt` or `package.json`
 - `Migration/expo-project/src/services/api/sentiment.service.ts` (client-side)
 - `Migration/expo-project/src/services/api/prediction.service.ts` (client-side)
 
 **Prerequisites:**
-- AWS account with Lambda access (or use AWS Free Tier)
-- Serverless Framework installed: `npm install -g serverless`
-- Understanding of the existing microservice: `stocks-backend-sentiment-f3jmjyxrpq-uc.a.run.app`
+- Task 3 complete (bag-of-words sentiment analysis implemented)
+- Python 3.9+ or Node.js 20+ installed (for local server)
 
 **Implementation Steps:**
 
-1. **Analyze the Android Microservice Integration**
+1. **Analyze the Android Microservice Contract**
    - Read `SetWordCountData.java`, find the microservice call (around line 200)
    - Note the request format:
      ```json
@@ -427,104 +424,154 @@ feat(sentiment): port bag-of-words sentiment analysis from Java
      }
      ```
 
-2. **Option A: Deploy AWS Lambda (Production)**
-   - Create `Migration/aws-lambda/sentiment-finbert/handler.py`:
+2. **Create Local Mock Server (Flask Example)**
+   - Create directory: `Migration/local-services/sentiment-server/`
+   - Create `server.py`:
      ```python
-     import json
-     from transformers import AutoTokenizer, AutoModelForSequenceClassification
-     import torch
+     from flask import Flask, request, jsonify
+     import random
 
-     model_name = "ProsusAI/finbert"
-     tokenizer = AutoTokenizer.from_pretrained(model_name)
-     model = AutoModelForSequenceClassification.from_pretrained(model_name)
+     app = Flask(__name__)
 
-     def lambda_handler(event, context):
-         body = json.loads(event['body'])
-         text = body.get('text', '')
+     @app.route('/sentiment', methods=['POST'])
+     def analyze_sentiment():
+         data = request.json
+         text = data.get('text', '')
 
-         inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
-         outputs = model(**inputs)
-         probs = torch.nn.functional.softmax(outputs.logits, dim=-1)
+         # Mock sentiment (random for testing)
+         # In reality, you could call your bag-of-words logic here
+         sentiments = ['POS', 'NEUT', 'NEG']
+         sentiment = random.choice(sentiments)
+         score = random.uniform(0.6, 0.95)
 
-         # FinBERT outputs: [negative, neutral, positive]
-         sentiment_map = ['NEG', 'NEUT', 'POS']
-         sentiment_idx = torch.argmax(probs).item()
+         return jsonify({
+             'sentiment': sentiment,
+             'score': score
+         })
 
-         return {
-             'statusCode': 200,
-             'body': json.dumps({
-                 'sentiment': sentiment_map[sentiment_idx],
-                 'score': float(probs[0][sentiment_idx])
-             })
-         }
+     @app.route('/predict', methods=['POST'])
+     def predict_movement():
+         data = request.json
+
+         # Mock predictions (random for testing)
+         return jsonify({
+             'predictions': {
+                 'oneDay': random.uniform(-0.05, 0.05),
+                 'twoWeeks': random.uniform(-0.10, 0.10),
+                 'oneMonth': random.uniform(-0.15, 0.15)
+             }
+         })
+
+     if __name__ == '__main__':
+         app.run(host='localhost', port=3000, debug=True)
      ```
+   - Create `requirements.txt`:
+     ```
+     flask==3.0.0
+     ```
+   - Run: `pip install -r requirements.txt && python server.py`
+   - Server runs on `http://localhost:3000`
 
-3. **Option B: Use Existing Microservice**
-   - If the existing microservice is still available and accessible
-   - Update the endpoint URL to point to it
-   - Skip Lambda deployment entirely
-
-4. **Option C: Local Development Environment**
-   - Set up a local Flask or FastAPI server that mimics the microservice
-   - Run locally during development: `python local_server.py`
-   - Useful for testing without deploying to AWS
-
-5. **Create Client-Side Service**
+3. **Create Client-Side Services**
    - File: `src/services/api/sentiment.service.ts`
    - Implement function:
      ```typescript
+     import axios from 'axios';
+
+     const SENTIMENT_ENDPOINT = process.env.SENTIMENT_ENDPOINT || 'http://localhost:3000/sentiment';
+
+     export interface SentimentResult {
+       sentiment: 'POS' | 'NEUT' | 'NEG';
+       score: number;
+     }
+
      export async function analyzeSentiment(text: string, ticker: string): Promise<SentimentResult> {
-       const response = await axios.post(LAMBDA_ENDPOINT, { text, ticker });
+       const response = await axios.post(SENTIMENT_ENDPOINT, { text, ticker });
        return response.data;
      }
      ```
 
-6. **Create Predictions Lambda Function**
-   - Read `SetPortfolioData.java` to understand the prediction logic
-   - The Android app sends stock price data + sentiment data to a microservice
-   - Microservice runs multivariate logistic regression
-   - Returns predictions for 1-day, 2-weeks, 1-month
-   - Create similar Lambda function or reuse existing if available
+   - File: `src/services/api/prediction.service.ts`
+   - Implement function:
+     ```typescript
+     import axios from 'axios';
 
-7. **Handle Lambda Cold Starts**
-   - Lambda functions have cold start latency (~1-5 seconds for Python with ML models)
-   - Implement loading indicators in the UI (Phase 3+)
-   - Consider Lambda provisioned concurrency for production (costs money)
+     const PREDICTION_ENDPOINT = process.env.PREDICTION_ENDPOINT || 'http://localhost:3000/predict';
 
-8. **Set Up Environment Variables**
-   - Store Lambda endpoint URLs in `.env` file:
+     export interface PredictionResult {
+       predictions: {
+         oneDay: number;
+         twoWeeks: number;
+         oneMonth: number;
+       };
+     }
+
+     export async function getPredictions(ticker: string, stockData: any[], sentimentData: any[]): Promise<PredictionResult> {
+       const response = await axios.post(PREDICTION_ENDPOINT, { ticker, stockData, sentimentData });
+       return response.data;
+     }
      ```
-     AWS_LAMBDA_SENTIMENT_ENDPOINT=https://xxxxx.lambda-url.us-east-1.on.aws/
-     AWS_LAMBDA_PREDICTION_ENDPOINT=https://yyyyy.lambda-url.us-east-1.on.aws/
+
+4. **Set Up Environment Variables**
+   - Create `.env` file in `Migration/expo-project/`:
      ```
-   - Use `@env` package to load variables
+     SENTIMENT_ENDPOINT=http://localhost:3000/sentiment
+     PREDICTION_ENDPOINT=http://localhost:3000/predict
+     ```
+   - Install: `npm install react-native-dotenv`
+   - Configure to load environment variables
+
+5. **Test the Integration**
+   - Start local server: `python server.py`
+   - Test sentiment endpoint: `curl -X POST http://localhost:3000/sentiment -H "Content-Type: application/json" -d '{"text":"Great news!","ticker":"AAPL"}'`
+   - Test prediction endpoint similarly
+   - Verify client-side service can call local server
 
 **Verification Checklist:**
-- [ ] FinBERT Lambda function deploys successfully
-- [ ] Can send test request and receive sentiment response
-- [ ] Prediction Lambda function deploys successfully
-- [ ] Client-side services can call Lambda endpoints
-- [ ] Error handling works (timeout, 500 errors)
+- [ ] Local server starts without errors on port 3000
+- [ ] Can send test request and receive mock sentiment response
+- [ ] Can send test request and receive mock prediction response
+- [ ] Client-side services can call local server successfully
+- [ ] Environment variables load correctly
 
 **Testing Instructions:**
-- Test Lambda function locally with `serverless invoke local`
+- Test local server endpoints with curl commands
 - Test with sample news article text
-- Compare FinBERT results with bag-of-words sentiment (may differ, both valid)
-- Integration test: Full pipeline (fetch news → FinBERT → store)
+- Verify mock responses match expected format (JSON contract)
+- Integration test: Call from React Native app (Phase 3+)
 
 **Commit Message Template:**
 ```
-feat(lambda): deploy AWS Lambda functions for FinBERT sentiment and predictions
+feat(services): create local mock sentiment and prediction services
 
-- Created sentiment-finbert Lambda with ProsusAI/finbert model
-- Created predictions Lambda with logistic regression model
-- Deployed to AWS using Serverless Framework
-- Added client-side services to call Lambda endpoints
+- Created Flask-based local server for sentiment analysis endpoint
+- Created mock prediction endpoint for stock movement predictions
+- Implemented client-side sentiment.service and prediction.service
 - Configured environment variables for endpoint URLs
-- Handles cold starts gracefully with retry logic
+- Local server runs on http://localhost:3000 for MVP development
 ```
 
-**Estimated Tokens:** ~18,000
+**Estimated Tokens:** ~12,000
+
+---
+
+**Advanced Options (Future Enhancements - Phase 8+):**
+
+If you need production-grade FinBERT sentiment or wish to deploy early:
+
+**Option A: Deploy to AWS Lambda**
+- Create Lambda function with FinBERT model (ProsusAI/finbert)
+- Use Serverless Framework or AWS CDK for deployment
+- Handle cold starts (3-5 seconds) with provisioned concurrency
+- Update environment variables to point to Lambda URLs
+- See tech lead review feedback for detailed Lambda code example
+
+**Option B: Use Existing Microservice**
+- If `stocks-backend-sentiment-f3jmjyxrpq-uc.a.run.app` is still available
+- Update `SENTIMENT_ENDPOINT` to point to existing service
+- Skip local server entirely
+
+**Note:** Client-side services are designed to be endpoint-agnostic. Simply update environment variables to switch from local mock to production services without code changes.
 
 ---
 

@@ -460,6 +460,39 @@ eas secret:create --name AWS_LAMBDA_ENDPOINT --value https://your-lambda.amazona
 - Check navigator hierarchy matches structure
 - Ensure screens are registered in navigator
 
+**Metro bundler won't start:**
+- Clear cache: `npx expo start -c` or `npx expo start --clear`
+- Delete `node_modules/` and reinstall: `rm -rf node_modules && npm install`
+- Clear watchman cache: `watchman watch-del-all` (if watchman is installed)
+
+**Expo Go vs Development Build confusion:**
+- **Expo Go**: Use for basic development without custom native modules
+- **Development Build**: Required if using custom native modules (e.g., ONNX Runtime)
+- If you get "Unable to resolve module" errors, you may need a development build
+- Create development build: `eas build --profile development --platform ios`
+
+**iOS Simulator not working:**
+- Ensure Xcode Command Line Tools installed: `xcode-select --install`
+- Open Xcode and accept license agreement
+- Launch simulator manually: `open -a Simulator`
+
+**Android Emulator setup:**
+- Install Android Studio: https://developer.android.com/studio
+- Configure Android SDK and emulator through Android Studio
+- Ensure `ANDROID_HOME` environment variable is set
+- Start emulator: `~/Android/Sdk/emulator/emulator -avd Pixel_5_API_31`
+
+**SQLite not working on web:**
+- expo-sqlite doesn't work in web browser
+- Use mock data for web development or skip web platform
+- Focus on iOS/Android for this app
+
+**Environment variables not loading:**
+- Ensure `.env` file exists in `Migration/expo-project/`
+- Install: `npm install react-native-dotenv`
+- Configure babel.config.js to include the plugin
+- Restart metro bundler after changes
+
 ---
 
 ## Future Enhancements (Phase 8+)

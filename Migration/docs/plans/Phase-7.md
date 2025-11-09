@@ -147,7 +147,22 @@ test: add integration tests for data flow and navigation
    });
    ```
 
-**Note:** E2E tests are time-consuming. Consider skipping if time is limited. Manual testing may suffice.
+**Recommendation for MVP: SKIP E2E TESTS**
+
+**Rationale:**
+- E2E tests with Detox are time-consuming to set up and maintain
+- Manual testing is sufficient for initial release and MVP validation
+- Focus effort on unit and integration tests instead (Tasks 1-2 provide better ROI)
+- Add E2E tests in Phase 8+ if:
+  - Releasing to large user base (10,000+ users)
+  - Enterprise deployment requiring automated regression testing
+  - Frequent releases where manual testing becomes bottleneck
+
+**If You Proceed with E2E Testing:**
+- Budget 2-3 days for Detox setup and configuration
+- Expect maintenance overhead (~10-15% of development time)
+- Run E2E tests in CI/CD only (not locally) to save time
+- Focus on 3-5 critical happy paths, not comprehensive coverage
 
 **Estimated Tokens:** ~8,000
 
