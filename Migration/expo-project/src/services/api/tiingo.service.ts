@@ -250,9 +250,9 @@ export function transformTiingoToSymbolDetails(
   return {
     ticker: metadata.ticker,
     name: metadata.name,
-    exchange: metadata.exchangeCode,
+    exchangeCode: metadata.exchangeCode,
     startDate: metadata.startDate,
     endDate: metadata.endDate,
-    description: metadata.description,
+    longDescription: metadata.description,
   };
 }

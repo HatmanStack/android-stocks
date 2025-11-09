@@ -262,10 +262,10 @@ describe('Tiingo Service', () => {
 
       expect(result.ticker).toBe('AAPL');
       expect(result.name).toBe('Apple Inc.');
-      expect(result.exchange).toBe('NASDAQ');
+      expect(result.exchangeCode).toBe('NASDAQ');
       expect(result.startDate).toBe('1980-12-12');
       expect(result.endDate).toBe('2025-12-31');
-      expect(result.description).toBe(
+      expect(result.longDescription).toBe(
         'Apple Inc. designs and manufactures consumer electronics.'
       );
     });
