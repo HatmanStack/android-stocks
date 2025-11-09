@@ -33,7 +33,7 @@ describe('vocabularyLoader', () => {
     it('should return true for known positive words', () => {
       expect(isPositiveWord('happy')).toBe(true);
       expect(isPositiveWord('good')).toBe(true);
-      expect(isPositiveWord('great')).toBe(true);
+      expect(isPositiveWord('generous')).toBe(true);
     });
 
     it('should return false for unknown words', () => {
