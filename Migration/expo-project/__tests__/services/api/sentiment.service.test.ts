@@ -84,7 +84,7 @@ describe('sentiment.service', () => {
         code: 'ECONNABORTED',
       };
       mockedAxios.post.mockRejectedValueOnce(timeoutError);
-      mockedAxios.isAxiosError = jest.fn().mockReturnValue(true);
+      mockedAxios.isAxiosError = jest.fn().mockReturnValue(true) as any;
 
       await expect(analyzeSentiment('Some text', 'hash123')).rejects.toThrow(
         'Sentiment analysis timed out (service cold start)'
@@ -97,7 +97,7 @@ describe('sentiment.service', () => {
         response: { status: 503 },
       };
       mockedAxios.post.mockRejectedValueOnce(serviceError);
-      mockedAxios.isAxiosError = jest.fn().mockReturnValue(true);
+      mockedAxios.isAxiosError = jest.fn().mockReturnValue(true) as any;
 
       await expect(analyzeSentiment('Some text', 'hash123')).rejects.toThrow(
         'Sentiment analysis service is temporarily unavailable'
@@ -107,7 +107,7 @@ describe('sentiment.service', () => {
     it('should handle general errors', async () => {
       const generalError = new Error('Network error');
       mockedAxios.post.mockRejectedValueOnce(generalError);
-      mockedAxios.isAxiosError = jest.fn().mockReturnValue(false);
+      mockedAxios.isAxiosError = jest.fn().mockReturnValue(false) as any;
 
       await expect(analyzeSentiment('Some text', 'hash123')).rejects.toThrow(
         'Sentiment analysis failed'

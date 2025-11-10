@@ -71,7 +71,7 @@ describe('prediction.service', () => {
         code: 'ECONNABORTED',
       };
       mockedAxios.post.mockRejectedValueOnce(timeoutError);
-      mockedAxios.isAxiosError = jest.fn().mockReturnValue(true);
+      mockedAxios.isAxiosError = jest.fn().mockReturnValue(true) as any;
 
       await expect(
         getStockPredictions('AAPL', [100], [1000000], [5], [2], [0.6])
@@ -84,7 +84,7 @@ describe('prediction.service', () => {
         response: { status: 503 },
       };
       mockedAxios.post.mockRejectedValueOnce(serviceError);
-      mockedAxios.isAxiosError = jest.fn().mockReturnValue(true);
+      mockedAxios.isAxiosError = jest.fn().mockReturnValue(true) as any;
 
       await expect(
         getStockPredictions('AAPL', [100], [1000000], [5], [2], [0.6])
@@ -97,7 +97,7 @@ describe('prediction.service', () => {
         response: { status: 400 },
       };
       mockedAxios.post.mockRejectedValueOnce(badRequestError);
-      mockedAxios.isAxiosError = jest.fn().mockReturnValue(true);
+      mockedAxios.isAxiosError = jest.fn().mockReturnValue(true) as any;
 
       await expect(
         getStockPredictions('AAPL', [100], [1000000], [5], [2], [0.6])
@@ -107,7 +107,7 @@ describe('prediction.service', () => {
     it('should handle general errors', async () => {
       const generalError = new Error('Network error');
       mockedAxios.post.mockRejectedValueOnce(generalError);
-      mockedAxios.isAxiosError = jest.fn().mockReturnValue(false);
+      mockedAxios.isAxiosError = jest.fn().mockReturnValue(false) as any;
 
       await expect(
         getStockPredictions('AAPL', [100], [1000000], [5], [2], [0.6])
