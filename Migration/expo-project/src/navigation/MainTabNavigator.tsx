@@ -10,6 +10,7 @@ import SearchScreen from '../screens/SearchScreen';
 import StockDetailScreen from '../screens/StockDetailScreen';
 import PortfolioScreen from '../screens/PortfolioScreen';
 import type { MainTabParamList } from './navigationTypes';
+import { bottomTabOptions } from './transitions';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -35,6 +36,7 @@ export function MainTabNavigator() {
         tabBarActiveTintColor: '#1976D2',
         tabBarInactiveTintColor: '#9E9E9E',
         headerShown: false,
+        ...bottomTabOptions,
       })}
     >
       <Tab.Screen

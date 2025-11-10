@@ -9,6 +9,7 @@ import PriceScreen from '../screens/PriceScreen';
 import SentimentScreen from '../screens/SentimentScreen';
 import NewsScreen from '../screens/NewsScreen';
 import type { StockDetailTabParamList } from './navigationTypes';
+import { materialTopTabOptions } from './transitions';
 
 const Tab = createMaterialTopTabNavigator<StockDetailTabParamList>();
 
@@ -25,6 +26,7 @@ export function StockDetailNavigator({ ticker }: StockDetailNavigatorProps) {
         tabBarIndicatorStyle: { backgroundColor: '#1976D2' },
         tabBarLabelStyle: { fontSize: 14, fontWeight: '600', textTransform: 'none' },
         tabBarStyle: { backgroundColor: '#fff' },
+        ...materialTopTabOptions,
       }}
     >
       <Tab.Screen
