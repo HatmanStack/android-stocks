@@ -6,6 +6,8 @@ import {
   formatShortDate,
   formatLongDate,
   formatNewsDate,
+  formatRelativeDate,
+  formatDateTime,
 } from '@/utils/formatting/dateFormatting';
 
 describe('dateFormatting', () => {
@@ -41,6 +43,56 @@ describe('dateFormatting', () => {
     it('should handle various date formats', () => {
       expect(formatNewsDate('2024-03-05')).toBe('Mar 05, 2024');
       expect(formatNewsDate('2024-12-31T00:00:00')).toBe('Dec 31, 2024');
+    });
+  });
+
+  describe('formatRelativeDate', () => {
+    it('should format dates as relative time', () => {
+      // Test with a date in the past
+      const pastDate = new Date();
+      pastDate.setDate(pastDate.getDate() - 2);
+      const result = formatRelativeDate(pastDate);
+      expect(result).toContain('days ago');
+    });
+
+    it('should handle ISO date strings', () => {
+      const pastDate = new Date();
+      pastDate.setHours(pastDate.getHours() - 5);
+      const result = formatRelativeDate(pastDate.toISOString());
+      expect(result).toContain('hours ago');
+    });
+
+    it('should handle Date objects', () => {
+      const pastDate = new Date();
+      pastDate.setMinutes(pastDate.getMinutes() - 30);
+      const result = formatRelativeDate(pastDate);
+      expect(result).toBeTruthy();
+      expect(typeof result).toBe('string');
+    });
+  });
+
+  describe('formatDateTime', () => {
+    it('should format dates with time in MMM dd, yyyy at h:mm a format', () => {
+      const date = new Date('2024-01-15T15:45:00');
+      const result = formatDateTime(date);
+      expect(result).toContain('Jan 15, 2024');
+      expect(result).toContain('at');
+      expect(result).toContain('PM');
+    });
+
+    it('should handle ISO date strings', () => {
+      const result = formatDateTime('2024-12-31T09:30:00');
+      expect(result).toContain('Dec 31, 2024');
+      expect(result).toContain('at');
+      expect(result).toContain('AM');
+    });
+
+    it('should handle different times', () => {
+      const morning = formatDateTime('2024-03-15T08:00:00');
+      expect(morning).toContain('8:00 AM');
+
+      const evening = formatDateTime('2024-03-15T20:30:00');
+      expect(evening).toContain('8:30 PM');
     });
   });
 });
