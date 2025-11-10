@@ -12,6 +12,7 @@ import { StockDetailNavigator } from '../navigation/StockDetailNavigator';
 import { useSymbolDetails } from '@/hooks/useSymbolSearch';
 import { usePortfolioContext } from '@/contexts/PortfolioContext';
 import { useStock } from '@/contexts/StockContext';
+import { OfflineIndicator } from '@/components/common/OfflineIndicator';
 
 type Props = MainTabScreenProps<'StockDetail'>;
 
@@ -62,6 +63,7 @@ export default function StockDetailScreen({ route, navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <OfflineIndicator />
       <Appbar.Header elevated>
         <Appbar.Content
           title={ticker}

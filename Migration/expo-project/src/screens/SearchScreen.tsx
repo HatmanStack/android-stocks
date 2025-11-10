@@ -13,6 +13,7 @@ import { DateRangePicker } from '@/components/common/DateRangePicker';
 import { LoadingIndicator } from '@/components/common/LoadingIndicator';
 import { ErrorDisplay } from '@/components/common/ErrorDisplay';
 import { EmptyState } from '@/components/common/EmptyState';
+import { OfflineIndicator } from '@/components/common/OfflineIndicator';
 import { useSymbolSearch } from '@/hooks/useSymbolSearch';
 import { useStock } from '@/contexts/StockContext';
 import { syncAllData } from '@/services/sync/syncOrchestrator';
@@ -134,6 +135,7 @@ export default function SearchScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <OfflineIndicator />
       <SearchBar onSearchChange={handleSearchChange} />
 
       <FlatList

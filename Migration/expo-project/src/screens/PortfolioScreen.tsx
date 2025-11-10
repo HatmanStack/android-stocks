@@ -12,6 +12,7 @@ import { AddStockButton } from '@/components/portfolio/AddStockButton';
 import { LoadingIndicator } from '@/components/common/LoadingIndicator';
 import { ErrorDisplay } from '@/components/common/ErrorDisplay';
 import { EmptyState } from '@/components/common/EmptyState';
+import { OfflineIndicator } from '@/components/common/OfflineIndicator';
 import { usePortfolioContext } from '@/contexts/PortfolioContext';
 import { useStock } from '@/contexts/StockContext';
 import { syncAllData } from '@/services/sync/syncOrchestrator';
@@ -120,6 +121,7 @@ export default function PortfolioScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <OfflineIndicator />
       <FlatList
         data={portfolio}
         renderItem={renderPortfolioItem}
