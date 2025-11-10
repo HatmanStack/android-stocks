@@ -27,6 +27,9 @@ import { theme } from './src/theme/theme';
 // Database
 import { initializeDatabase } from './src/database/database';
 
+// Error Boundary
+import { ErrorBoundary } from './src/components/common/ErrorBoundary';
+
 // Constants
 const NAVIGATION_STATE_KEY = '@navigation_state';
 
@@ -85,13 +88,14 @@ export default function App() {
   }
 
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <SafeAreaProvider>
-        <PaperProvider theme={theme}>
-          <QueryClientProvider client={queryClient}>
-            <StockProvider>
-              <PortfolioProvider>
-                <NavigationContainer
+    <ErrorBoundary>
+      <GestureHandlerRootView style={styles.container}>
+        <SafeAreaProvider>
+          <PaperProvider theme={theme}>
+            <QueryClientProvider client={queryClient}>
+              <StockProvider>
+                <PortfolioProvider>
+                  <NavigationContainer
                   ref={navigationRef as any}
                   initialState={initialNavigationState}
                   onStateChange={(state) => {
@@ -128,15 +132,16 @@ export default function App() {
                     },
                   } as any}
                 >
-                  <RootNavigator />
-                  <StatusBar style="auto" />
-                </NavigationContainer>
-              </PortfolioProvider>
-            </StockProvider>
-          </QueryClientProvider>
-        </PaperProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+                    <RootNavigator />
+                    <StatusBar style="dark" />
+                  </NavigationContainer>
+                </PortfolioProvider>
+              </StockProvider>
+            </QueryClientProvider>
+          </PaperProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }
 
