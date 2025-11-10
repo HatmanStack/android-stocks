@@ -98,6 +98,7 @@ export default function PriceScreen({ route }: Props) {
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <FlatList
+        testID="price-flatlist"
         data={sortedStockData}
         renderItem={renderItem}
         keyExtractor={keyExtractor}

@@ -31,7 +31,7 @@ export function NewsCard({ article }: NewsCardProps) {
 
         <View style={styles.metaContainer}>
           <Text style={styles.publisher}>{article.publisher}</Text>
-          <Text style={styles.date}>{formatNewsDate(article.date)}</Text>
+          <Text style={styles.date}>{formatNewsDate(article.articleDate)}</Text>
         </View>
 
         {article.articleDescription && (

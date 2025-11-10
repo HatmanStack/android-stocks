@@ -19,7 +19,7 @@ const parser = new xml2js.Parser();
 parser.parseString(xmlContent, (err, result) => {
   if (err) {
     console.error('Error parsing XML:', err);
-    throw err;
+    process.exit(1);
   }
 
   const vocabulary = {

@@ -14,7 +14,7 @@ interface PriceListItemProps {
   item: StockDetails;
 }
 
-export const PriceListItem: React.FC<PriceListItemProps> = React.memo(({ item }) => {
+export const PriceListItem = React.memo<PriceListItemProps>(({ item }) => {
   const theme = useTheme();
 
   // Determine row color based on close vs open

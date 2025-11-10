@@ -17,6 +17,7 @@ interface SuccessFeedbackProps {
 export function SuccessFeedback({ message, visible, onComplete }: SuccessFeedbackProps) {
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (visible) {
@@ -35,7 +36,7 @@ export function SuccessFeedback({ message, visible, onComplete }: SuccessFeedbac
         }),
       ]).start(() => {
         // Auto-hide after 2 seconds
-        setTimeout(() => {
+        timeoutRef.current = setTimeout(() => {
           Animated.parallel([
             Animated.timing(scaleAnim, {
               toValue: 0,
@@ -56,7 +57,14 @@ export function SuccessFeedback({ message, visible, onComplete }: SuccessFeedbac
       scaleAnim.setValue(0);
       opacityAnim.setValue(0);
     }
-  }, [visible, scaleAnim, opacityAnim, onComplete]);
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [visible, scaleAnim, opacityAnim]);
 
   if (!visible) return null;
 

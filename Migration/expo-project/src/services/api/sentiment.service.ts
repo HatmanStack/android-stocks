@@ -4,7 +4,8 @@
  */
 
 import axios from 'axios';
-import { API_ENDPOINTS, API_TIMEOUTS } from '@/constants/api.constants';
+import { API_TIMEOUTS } from '@/constants/api.constants';
+import { env } from '@/config/env';
 import type {
   SentimentAnalysisRequest,
   SentimentAnalysisResponse,
@@ -38,7 +39,7 @@ export async function analyzeSentiment(
     );
 
     const response = await axios.post<SentimentAnalysisResponse>(
-      API_ENDPOINTS.SENTIMENT_ANALYSIS,
+      env.sentimentApiUrl,
       request,
       {
         timeout: API_TIMEOUTS.SENTIMENT,

@@ -13,6 +13,7 @@ interface EnvironmentConfig {
   polygonApiKey: string;
   sentimentApiUrl: string;
   predictionApiUrl: string;
+  sentryDsn: string;
   useMockData: boolean;
   enableDebugLogs: boolean;
 }
@@ -21,9 +22,18 @@ interface EnvironmentConfig {
  * Get environment configuration from expo-constants
  * In production, these should be set via EAS Secrets
  * In development, these can be set via .env file or app.json extra field
+ *
+ * Handles multiple sources for compatibility with different build types:
+ * - expoConfig.extra: Development and EAS builds
+ * - manifest.extra: Classic updates
+ * - manifest2.extra: EAS Update
  */
 function getEnvironmentConfig(): EnvironmentConfig {
-  const extra = Constants.expoConfig?.extra || {};
+  // Try multiple sources for maximum compatibility
+  const extra = Constants.expoConfig?.extra ||
+                Constants.manifest?.extra ||
+                (Constants.manifest2?.extra as any)?.expoClient?.extra ||
+                {};
 
   return {
     tiingoApiKey: extra.tiingoApiKey || '',
@@ -33,6 +43,7 @@ function getEnvironmentConfig(): EnvironmentConfig {
       'https://stocks-backend-sentiment-f3jmjyxrpq-uc.a.run.app',
     predictionApiUrl:
       extra.predictionApiUrl || 'https://stocks-f3jmjyxrpq-uc.a.run.app',
+    sentryDsn: extra.sentryDsn || '',
     useMockData: extra.useMockData === 'true' || extra.useMockData === true,
     enableDebugLogs:
       extra.enableDebugLogs === 'true' || extra.enableDebugLogs === true || __DEV__,
@@ -88,6 +99,7 @@ export function logEnvironmentStatus(): void {
   console.log(`  - Polygon API Key: ${env.polygonApiKey ? '✓ Set' : '✗ Not set'}`);
   console.log(`  - Sentiment API URL: ${env.sentimentApiUrl}`);
   console.log(`  - Prediction API URL: ${env.predictionApiUrl}`);
+  console.log(`  - Sentry DSN: ${env.sentryDsn ? '✓ Set' : '✗ Not set'}`);
   console.log(`  - Use Mock Data: ${env.useMockData}`);
   console.log(`  - Debug Logs: ${env.enableDebugLogs}`);
 }

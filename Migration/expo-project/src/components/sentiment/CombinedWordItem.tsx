@@ -97,7 +97,7 @@ export const CombinedWordItem: React.FC<CombinedWordItemProps> = React.memo(({ i
                 variant="bodyLarge"
                 style={{ color: getPredictionColor(item.nextDay), fontWeight: 'bold' }}
               >
-                {formatPercentage(item.nextDay / 100)}
+                {formatPercentage(item.nextDay)}
               </Text>
             </View>
 
@@ -109,7 +109,7 @@ export const CombinedWordItem: React.FC<CombinedWordItemProps> = React.memo(({ i
                 variant="bodyLarge"
                 style={{ color: getPredictionColor(item.twoWks), fontWeight: 'bold' }}
               >
-                {formatPercentage(item.twoWks / 100)}
+                {formatPercentage(item.twoWks)}
               </Text>
             </View>
 
@@ -121,7 +121,7 @@ export const CombinedWordItem: React.FC<CombinedWordItemProps> = React.memo(({ i
                 variant="bodyLarge"
                 style={{ color: getPredictionColor(item.oneMnth), fontWeight: 'bold' }}
               >
-                {formatPercentage(item.oneMnth / 100)}
+                {formatPercentage(item.oneMnth)}
               </Text>
             </View>
           </View>

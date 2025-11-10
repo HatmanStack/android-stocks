@@ -9,16 +9,25 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 export function OfflineIndicator() {
-  const { isConnected } = useNetworkStatus();
+  const { isConnected, isInternetReachable } = useNetworkStatus();
 
-  if (isConnected) {
+  // Only show offline indicator if definitely offline
+  // isInternetReachable can be null during initial check
+  const isOffline = !isConnected || isInternetReachable === false;
+
+  if (!isOffline) {
     return null;
   }
 
   return (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      accessibilityRole="alert"
+      accessibilityLabel="Offline notification"
+      accessibilityHint="You are currently offline and may not be able to fetch new data"
+    >
       <Ionicons name="cloud-offline" size={16} color="#fff" />
-      <Text style={styles.text}>You are offline. Showing cached data.</Text>
+      <Text style={styles.text}>You are offline. Some features may be unavailable.</Text>
     </View>
   );
 }

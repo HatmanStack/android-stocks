@@ -27,9 +27,9 @@ const mockRoute = {
 
 // Mock portfolio data
 const mockPortfolio: PortfolioDetails[] = [
-  { ticker: 'AAPL', dateAdded: '2025-01-01' },
-  { ticker: 'GOOGL', dateAdded: '2025-01-02' },
-  { ticker: 'MSFT', dateAdded: '2025-01-03' },
+  { ticker: 'AAPL', next: '0.52', name: 'Apple Inc.', wks: '0.48', mnth: '0.55' },
+  { ticker: 'GOOGL', next: '0.61', name: 'Alphabet Inc.', wks: '0.59', mnth: '0.63' },
+  { ticker: 'MSFT', next: '0.57', name: 'Microsoft Corporation', wks: '0.54', mnth: '0.60' },
 ];
 
 // Mock context functions

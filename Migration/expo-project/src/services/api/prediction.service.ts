@@ -4,7 +4,8 @@
  */
 
 import axios from 'axios';
-import { API_ENDPOINTS, API_TIMEOUTS } from '@/constants/api.constants';
+import { API_TIMEOUTS } from '@/constants/api.constants';
+import { env } from '@/config/env';
 import type {
   StockPredictionRequest,
   StockPredictionResponse,
@@ -44,7 +45,7 @@ export async function getStockPredictions(
     );
 
     const response = await axios.post<StockPredictionResponse>(
-      API_ENDPOINTS.STOCK_PREDICTION,
+      env.predictionApiUrl,
       request,
       {
         timeout: API_TIMEOUTS.PREDICTION,

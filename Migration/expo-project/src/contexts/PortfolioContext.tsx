@@ -35,7 +35,7 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
       console.log('[PortfolioContext] Adding to portfolio:', ticker);
 
       // Create portfolio entry with default prediction values
-      const portfolioEntry: Omit<PortfolioDetails, 'id'> = {
+      const portfolioEntry: PortfolioDetails = {
         ticker,
         name: ticker, // Will be updated when data syncs
         next: '0',
@@ -43,7 +43,7 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
         mnth: '0',
       };
 
-      await portfolioHook.addToPortfolio.mutateAsync(portfolioEntry as PortfolioDetails);
+      await portfolioHook.addToPortfolio.mutateAsync(portfolioEntry);
     } catch (error) {
       console.error('[PortfolioContext] Error adding to portfolio:', error);
       throw error;

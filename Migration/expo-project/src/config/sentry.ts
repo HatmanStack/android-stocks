@@ -5,6 +5,7 @@
 
 import * as Sentry from '@sentry/react-native';
 import Constants from 'expo-constants';
+import { env } from './env';
 
 /**
  * Initialize Sentry error monitoring
@@ -17,9 +18,7 @@ export function initializeSentry(): void {
     return;
   }
 
-  const sentryDsn = Constants.expoConfig?.extra?.sentryDsn;
-
-  if (!sentryDsn) {
+  if (!env.sentryDsn) {
     console.warn(
       '[Sentry] DSN not configured. Error monitoring is disabled. Set SENTRY_DSN in app.json extra field or EAS Secrets.'
     );
@@ -28,7 +27,7 @@ export function initializeSentry(): void {
 
   try {
     Sentry.init({
-      dsn: sentryDsn,
+      dsn: env.sentryDsn,
 
       // Set environment
       environment: __DEV__ ? 'development' : 'production',
