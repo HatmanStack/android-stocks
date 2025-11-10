@@ -30,56 +30,76 @@ export function PortfolioItem({ item, onPress, onDelete }: PortfolioItemProps) {
   };
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityLabel={`${item.ticker}, ${item.name || 'Stock'}. Predictions: 1 day ${formatPrediction(item.next)}, 2 weeks ${formatPrediction(item.wks)}, 1 month ${formatPrediction(item.mnth)}`}
+      accessibilityHint="Double tap to view stock details"
+      accessibilityRole="button"
+    >
       <Card style={styles.card}>
         <Card.Content>
           <View style={styles.container}>
             <View style={styles.leftContent}>
               <View style={styles.headerRow}>
-                <Text style={styles.ticker}>{item.ticker}</Text>
+                <Text style={styles.ticker} allowFontScaling={true}>
+                  {item.ticker}
+                </Text>
                 <IconButton
                   icon="close-circle"
                   size={20}
                   iconColor="#9E9E9E"
                   onPress={onDelete}
                   style={styles.deleteButton}
+                  accessibilityLabel={`Remove ${item.ticker} from portfolio`}
+                  accessibilityHint="Double tap to remove this stock from your portfolio"
+                  accessibilityRole="button"
                 />
               </View>
               {item.name && (
-                <Text style={styles.name} numberOfLines={1}>
+                <Text style={styles.name} numberOfLines={1} allowFontScaling={true}>
                   {item.name}
                 </Text>
               )}
               <View style={styles.predictionsContainer}>
                 <View style={styles.predictionItem}>
-                  <Text style={styles.predictionLabel}>1 Day</Text>
+                  <Text style={styles.predictionLabel} allowFontScaling={true}>
+                    1 Day
+                  </Text>
                   <Text
                     style={[
                       styles.predictionValue,
                       { color: getPredictionColor(item.next) },
                     ]}
+                    allowFontScaling={true}
                   >
                     {formatPrediction(item.next)}
                   </Text>
                 </View>
                 <View style={styles.predictionItem}>
-                  <Text style={styles.predictionLabel}>2 Weeks</Text>
+                  <Text style={styles.predictionLabel} allowFontScaling={true}>
+                    2 Weeks
+                  </Text>
                   <Text
                     style={[
                       styles.predictionValue,
                       { color: getPredictionColor(item.wks) },
                     ]}
+                    allowFontScaling={true}
                   >
                     {formatPrediction(item.wks)}
                   </Text>
                 </View>
                 <View style={styles.predictionItem}>
-                  <Text style={styles.predictionLabel}>1 Month</Text>
+                  <Text style={styles.predictionLabel} allowFontScaling={true}>
+                    1 Month
+                  </Text>
                   <Text
                     style={[
                       styles.predictionValue,
                       { color: getPredictionColor(item.mnth) },
                     ]}
+                    allowFontScaling={true}
                   >
                     {formatPrediction(item.mnth)}
                   </Text>

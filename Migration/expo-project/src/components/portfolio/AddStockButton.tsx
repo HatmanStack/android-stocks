@@ -18,6 +18,9 @@ export function AddStockButton({ onPress }: AddStockButtonProps) {
       style={styles.fab}
       onPress={onPress}
       label="Add Stock"
+      accessibilityLabel="Add stock to portfolio"
+      accessibilityHint="Opens search screen to select a stock to add to your portfolio"
+      accessibilityRole="button"
     />
   );
 }

@@ -38,7 +38,13 @@ export const NewsListItem: React.FC<NewsListItemProps> = React.memo(({ item }) =
   };
 
   return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.7}>
+    <TouchableOpacity
+      onPress={handlePress}
+      activeOpacity={0.7}
+      accessibilityLabel={`News article: ${item.title}. Published by ${item.publisher} on ${formatNewsDate(item.articleDate)}`}
+      accessibilityHint="Double tap to open article in browser"
+      accessibilityRole="button"
+    >
       <Card style={styles.card}>
         <Card.Content>
           {/* Title */}
@@ -51,7 +57,11 @@ export const NewsListItem: React.FC<NewsListItemProps> = React.memo(({ item }) =
             <Text variant="bodySmall" style={[styles.publisher, { color: theme.colors.primary }]}>
               {item.publisher}
             </Text>
-            <Text variant="bodySmall" style={[styles.separator, { color: theme.colors.onSurfaceVariant }]}>
+            <Text
+              variant="bodySmall"
+              style={[styles.separator, { color: theme.colors.onSurfaceVariant }]}
+              accessible={false}
+            >
               •
             </Text>
             <Text variant="bodySmall" style={[styles.date, { color: theme.colors.onSurfaceVariant }]}>

@@ -16,20 +16,35 @@ interface SearchResultItemProps {
 
 export function SearchResultItem({ symbol, onPress }: SearchResultItemProps) {
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityLabel={`${symbol.ticker}, ${symbol.name}`}
+      accessibilityHint="Double tap to view stock details"
+      accessibilityRole="button"
+    >
       <Card style={styles.card}>
         <Card.Content>
           <View style={styles.container}>
             <View style={styles.leftContent}>
-              <Text style={styles.ticker}>{symbol.ticker}</Text>
-              <Text style={styles.name} numberOfLines={1}>
+              <Text style={styles.ticker} allowFontScaling={true}>
+                {symbol.ticker}
+              </Text>
+              <Text style={styles.name} numberOfLines={1} allowFontScaling={true}>
                 {symbol.name}
               </Text>
               {symbol.exchangeCode && (
-                <Text style={styles.exchange}>{symbol.exchangeCode}</Text>
+                <Text style={styles.exchange} allowFontScaling={true}>
+                  {symbol.exchangeCode}
+                </Text>
               )}
             </View>
-            <Ionicons name="chevron-forward" size={24} color="#9E9E9E" />
+            <Ionicons
+              name="chevron-forward"
+              size={24}
+              color="#9E9E9E"
+              accessible={false}
+            />
           </View>
         </Card.Content>
       </Card>
