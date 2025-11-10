@@ -4,6 +4,7 @@
  */
 
 import axios, { AxiosInstance, AxiosError } from 'axios';
+import { env } from '@/config/env';
 import type { TiingoStockPrice, TiingoSymbolMetadata } from './tiingo.types';
 import type { StockDetails, SymbolDetails } from '@/types/database.types';
 
@@ -11,28 +12,29 @@ import type { StockDetails, SymbolDetails } from '@/types/database.types';
 const TIINGO_BASE_URL = 'https://api.tiingo.com';
 const TIINGO_TIMEOUT = 10000; // 10 seconds
 
-// API key management - use environment variable or expo-secure-store
-let tiingoApiKey: string | null = null;
-
 /**
- * Set the Tiingo API key
- * @param apiKey - Tiingo API key from https://api.tiingo.com
- */
-export function setTiingoApiKey(apiKey: string): void {
-  tiingoApiKey = apiKey;
-}
-
-/**
- * Get the configured API key
+ * Get the configured API key from environment
  * @throws Error if API key is not set
  */
 function getApiKey(): string {
-  if (!tiingoApiKey) {
+  if (!env.tiingoApiKey) {
     throw new Error(
-      'Tiingo API key not configured. Call setTiingoApiKey() first or set TIINGO_API_KEY environment variable.'
+      'Tiingo API key not configured. Set TIINGO_API_KEY in app.json extra field or EAS Secrets.'
     );
   }
-  return tiingoApiKey;
+  return env.tiingoApiKey;
+}
+
+/**
+ * @deprecated Use env configuration instead
+ * Set the Tiingo API key (maintained for backward compatibility)
+ * @param apiKey - Tiingo API key from https://api.tiingo.com
+ */
+export function setTiingoApiKey(apiKey: string): void {
+  console.warn(
+    '[TiingoService] setTiingoApiKey is deprecated. Use environment configuration instead.'
+  );
+  // This function is kept for backward compatibility but no longer used
 }
 
 /**

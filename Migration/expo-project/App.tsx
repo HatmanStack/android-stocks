@@ -30,6 +30,15 @@ import { initializeDatabase } from './src/database/database';
 // Error Boundary
 import { ErrorBoundary } from './src/components/common/ErrorBoundary';
 
+// Environment Configuration
+import { validateEnvironmentConfig, logEnvironmentStatus } from './src/config/env';
+
+// Sentry Error Monitoring
+import { initializeSentry } from './src/config/sentry';
+
+// Initialize Sentry before app renders
+initializeSentry();
+
 // Constants
 const NAVIGATION_STATE_KEY = '@navigation_state';
 
@@ -53,6 +62,17 @@ export default function App() {
   useEffect(() => {
     async function initialize() {
       try {
+        // Validate environment configuration
+        logEnvironmentStatus();
+        const { valid, errors } = validateEnvironmentConfig();
+        if (!valid) {
+          console.warn('[App] Environment configuration warnings:');
+          errors.forEach((error) => console.warn(`  - ${error}`));
+          console.warn('[App] App will continue with mock data or limited functionality');
+        } else {
+          console.log('[App] Environment configuration validated successfully');
+        }
+
         // Initialize database
         await initializeDatabase();
         console.log('[App] Database initialized successfully');

@@ -67,16 +67,30 @@ export default function PortfolioScreen({ navigation }: Props) {
       // Calculate number of days to sync
       const days = Math.abs(differenceInDays(new Date(endDate), new Date(startDate))) + 1;
 
-      // Refresh all stocks in portfolio
-      console.log(`[PortfolioScreen] Refreshing ${portfolio.length} stocks`);
+      // Refresh all stocks in portfolio with concurrent fetching
+      console.log(`[PortfolioScreen] Refreshing ${portfolio.length} stocks (concurrent)`);
 
-      for (const item of portfolio) {
-        try {
-          await syncAllData(item.ticker, days);
-          console.log(`[PortfolioScreen] Refreshed ${item.ticker}`);
-        } catch (error) {
-          console.error(`[PortfolioScreen] Error refreshing ${item.ticker}:`, error);
-        }
+      // Concurrent refresh with limit of 3 simultaneous requests
+      const CONCURRENCY_LIMIT = 3;
+      const chunks: typeof portfolio[] = [];
+
+      // Split portfolio into chunks for concurrent processing
+      for (let i = 0; i < portfolio.length; i += CONCURRENCY_LIMIT) {
+        chunks.push(portfolio.slice(i, i + CONCURRENCY_LIMIT));
+      }
+
+      // Process each chunk concurrently
+      for (const chunk of chunks) {
+        await Promise.all(
+          chunk.map(async (item) => {
+            try {
+              await syncAllData(item.ticker, days);
+              console.log(`[PortfolioScreen] Refreshed ${item.ticker}`);
+            } catch (error) {
+              console.error(`[PortfolioScreen] Error refreshing ${item.ticker}:`, error);
+            }
+          })
+        );
       }
 
       // Refetch portfolio data

@@ -5,6 +5,7 @@
 
 import axios, { AxiosInstance } from 'axios';
 import { createHash } from 'crypto';
+import { env } from '@/config/env';
 import type { PolygonNewsArticle, PolygonNewsResponse } from './polygon.types';
 import type { NewsDetails } from '@/types/database.types';
 
@@ -12,28 +13,29 @@ import type { NewsDetails } from '@/types/database.types';
 const POLYGON_BASE_URL = 'https://api.polygon.io';
 const POLYGON_TIMEOUT = 10000; // 10 seconds
 
-// API key management
-let polygonApiKey: string | null = null;
-
 /**
- * Set the Polygon API key
- * @param apiKey - Polygon API key from https://polygon.io
- */
-export function setPolygonApiKey(apiKey: string): void {
-  polygonApiKey = apiKey;
-}
-
-/**
- * Get the configured API key
+ * Get the configured API key from environment
  * @throws Error if API key is not set
  */
 function getApiKey(): string {
-  if (!polygonApiKey) {
+  if (!env.polygonApiKey) {
     throw new Error(
-      'Polygon API key not configured. Call setPolygonApiKey() first or set POLYGON_API_KEY environment variable.'
+      'Polygon API key not configured. Set POLYGON_API_KEY in app.json extra field or EAS Secrets.'
     );
   }
-  return polygonApiKey;
+  return env.polygonApiKey;
+}
+
+/**
+ * @deprecated Use env configuration instead
+ * Set the Polygon API key (maintained for backward compatibility)
+ * @param apiKey - Polygon API key from https://polygon.io
+ */
+export function setPolygonApiKey(apiKey: string): void {
+  console.warn(
+    '[PolygonService] setPolygonApiKey is deprecated. Use environment configuration instead.'
+  );
+  // This function is kept for backward compatibility but no longer used
 }
 
 /**

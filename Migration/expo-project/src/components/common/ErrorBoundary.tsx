@@ -8,6 +8,7 @@ import React, { Component, ReactNode } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Button } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { captureException } from '@/config/sentry';
 
 interface Props {
   children: ReactNode;
@@ -44,8 +45,11 @@ export class ErrorBoundary extends Component<Props, State> {
       errorInfo,
     });
 
-    // Here you could also log the error to an error reporting service
-    // e.g., Sentry, Crashlytics, etc.
+    // Report error to Sentry for production monitoring
+    captureException(error, {
+      errorBoundary: true,
+      componentStack: errorInfo.componentStack,
+    });
   }
 
   handleReset = () => {

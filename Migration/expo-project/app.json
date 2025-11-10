@@ -31,6 +31,18 @@
     ],
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "tiingoApiKey": "",
+      "polygonApiKey": "",
+      "sentimentApiUrl": "https://stocks-backend-sentiment-f3jmjyxrpq-uc.a.run.app",
+      "predictionApiUrl": "https://stocks-f3jmjyxrpq-uc.a.run.app",
+      "sentryDsn": "",
+      "useMockData": false,
+      "enableDebugLogs": true,
+      "eas": {
+        "projectId": "your-eas-project-id"
+      }
     }
   }
 }

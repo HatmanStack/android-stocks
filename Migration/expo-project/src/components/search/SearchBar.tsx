@@ -32,6 +32,9 @@ export function SearchBar({ onSearchChange, placeholder = 'Search by ticker or c
         value={searchQuery}
         style={styles.searchbar}
         iconColor="#1976D2"
+        accessibilityLabel="Search stocks"
+        accessibilityHint="Enter a ticker symbol or company name to search for stocks"
+        accessibilityRole="search"
       />
     </View>
   );
