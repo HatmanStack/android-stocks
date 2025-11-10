@@ -1,10 +1,10 @@
 /**
  * Loading Indicator Component
- * Centered activity indicator for loading states
+ * Centered activity indicator for loading states with pulse animation
  */
 
-import React from 'react';
-import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, ActivityIndicator, StyleSheet, Text, Animated } from 'react-native';
 
 interface LoadingIndicatorProps {
   message?: string;
@@ -12,10 +12,41 @@ interface LoadingIndicatorProps {
 }
 
 export function LoadingIndicator({ message, size = 'large' }: LoadingIndicatorProps) {
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    pulse.start();
+
+    return () => {
+      pulse.stop();
+    };
+  }, [pulseAnim]);
+
   return (
     <View style={styles.container}>
-      <ActivityIndicator size={size} color="#1976D2" />
-      {message && <Text style={styles.message}>{message}</Text>}
+      <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+        <ActivityIndicator size={size} color="#1976D2" />
+      </Animated.View>
+      {message && (
+        <Animated.Text style={[styles.message, { opacity: pulseAnim }]}>
+          {message}
+        </Animated.Text>
+      )}
     </View>
   );
 }

@@ -30,64 +30,66 @@ export function PortfolioItem({ item, onPress, onDelete }: PortfolioItemProps) {
   };
 
   return (
-    <Card style={styles.card} onPress={onPress}>
-      <Card.Content>
-        <View style={styles.container}>
-          <View style={styles.leftContent}>
-            <View style={styles.headerRow}>
-              <Text style={styles.ticker}>{item.ticker}</Text>
-              <IconButton
-                icon="close-circle"
-                size={20}
-                iconColor="#9E9E9E"
-                onPress={onDelete}
-                style={styles.deleteButton}
-              />
-            </View>
-            {item.name && (
-              <Text style={styles.name} numberOfLines={1}>
-                {item.name}
-              </Text>
-            )}
-            <View style={styles.predictionsContainer}>
-              <View style={styles.predictionItem}>
-                <Text style={styles.predictionLabel}>1 Day</Text>
-                <Text
-                  style={[
-                    styles.predictionValue,
-                    { color: getPredictionColor(item.next) },
-                  ]}
-                >
-                  {formatPrediction(item.next)}
-                </Text>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+      <Card style={styles.card}>
+        <Card.Content>
+          <View style={styles.container}>
+            <View style={styles.leftContent}>
+              <View style={styles.headerRow}>
+                <Text style={styles.ticker}>{item.ticker}</Text>
+                <IconButton
+                  icon="close-circle"
+                  size={20}
+                  iconColor="#9E9E9E"
+                  onPress={onDelete}
+                  style={styles.deleteButton}
+                />
               </View>
-              <View style={styles.predictionItem}>
-                <Text style={styles.predictionLabel}>2 Weeks</Text>
-                <Text
-                  style={[
-                    styles.predictionValue,
-                    { color: getPredictionColor(item.wks) },
-                  ]}
-                >
-                  {formatPrediction(item.wks)}
+              {item.name && (
+                <Text style={styles.name} numberOfLines={1}>
+                  {item.name}
                 </Text>
-              </View>
-              <View style={styles.predictionItem}>
-                <Text style={styles.predictionLabel}>1 Month</Text>
-                <Text
-                  style={[
-                    styles.predictionValue,
-                    { color: getPredictionColor(item.mnth) },
-                  ]}
-                >
-                  {formatPrediction(item.mnth)}
-                </Text>
+              )}
+              <View style={styles.predictionsContainer}>
+                <View style={styles.predictionItem}>
+                  <Text style={styles.predictionLabel}>1 Day</Text>
+                  <Text
+                    style={[
+                      styles.predictionValue,
+                      { color: getPredictionColor(item.next) },
+                    ]}
+                  >
+                    {formatPrediction(item.next)}
+                  </Text>
+                </View>
+                <View style={styles.predictionItem}>
+                  <Text style={styles.predictionLabel}>2 Weeks</Text>
+                  <Text
+                    style={[
+                      styles.predictionValue,
+                      { color: getPredictionColor(item.wks) },
+                    ]}
+                  >
+                    {formatPrediction(item.wks)}
+                  </Text>
+                </View>
+                <View style={styles.predictionItem}>
+                  <Text style={styles.predictionLabel}>1 Month</Text>
+                  <Text
+                    style={[
+                      styles.predictionValue,
+                      { color: getPredictionColor(item.mnth) },
+                    ]}
+                  >
+                    {formatPrediction(item.mnth)}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
-        </View>
-      </Card.Content>
-    </Card>
+        </Card.Content>
+      </Card>
+    </TouchableOpacity>
   );
 }
 

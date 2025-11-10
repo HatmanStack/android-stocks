@@ -16,22 +16,24 @@ interface SearchResultItemProps {
 
 export function SearchResultItem({ symbol, onPress }: SearchResultItemProps) {
   return (
-    <Card style={styles.card} onPress={onPress}>
-      <Card.Content>
-        <View style={styles.container}>
-          <View style={styles.leftContent}>
-            <Text style={styles.ticker}>{symbol.ticker}</Text>
-            <Text style={styles.name} numberOfLines={1}>
-              {symbol.name}
-            </Text>
-            {symbol.exchangeCode && (
-              <Text style={styles.exchange}>{symbol.exchangeCode}</Text>
-            )}
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+      <Card style={styles.card}>
+        <Card.Content>
+          <View style={styles.container}>
+            <View style={styles.leftContent}>
+              <Text style={styles.ticker}>{symbol.ticker}</Text>
+              <Text style={styles.name} numberOfLines={1}>
+                {symbol.name}
+              </Text>
+              {symbol.exchangeCode && (
+                <Text style={styles.exchange}>{symbol.exchangeCode}</Text>
+              )}
+            </View>
+            <Ionicons name="chevron-forward" size={24} color="#9E9E9E" />
           </View>
-          <Ionicons name="chevron-forward" size={24} color="#9E9E9E" />
-        </View>
-      </Card.Content>
-    </Card>
+        </Card.Content>
+      </Card>
+    </TouchableOpacity>
   );
 }
 
