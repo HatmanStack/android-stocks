@@ -24,37 +24,50 @@ interface PortfolioProviderProps {
 }
 
 export function PortfolioProvider({ children }: PortfolioProviderProps) {
-  const {
-    portfolio,
-    isLoading,
-    error,
-    refetch,
-  } = usePortfolio();
+  const portfolioHook = usePortfolio();
 
   const isInPortfolio = (ticker: string): boolean => {
-    return portfolio.some((item: PortfolioDetails) => item.ticker === ticker);
+    return portfolioHook.portfolio.some((item: PortfolioDetails) => item.ticker === ticker);
   };
 
   const addToPortfolio = async (ticker: string): Promise<void> => {
-    // This will be implemented when we wire up mutations
-    // For now, just log
-    console.log('[PortfolioContext] Adding to portfolio:', ticker);
+    try {
+      console.log('[PortfolioContext] Adding to portfolio:', ticker);
+
+      // Create portfolio entry with default prediction values
+      const portfolioEntry: Omit<PortfolioDetails, 'id'> = {
+        ticker,
+        name: ticker, // Will be updated when data syncs
+        next: '0',
+        wks: '0',
+        mnth: '0',
+      };
+
+      await portfolioHook.addToPortfolio.mutateAsync(portfolioEntry as PortfolioDetails);
+    } catch (error) {
+      console.error('[PortfolioContext] Error adding to portfolio:', error);
+      throw error;
+    }
   };
 
   const removeFromPortfolio = async (ticker: string): Promise<void> => {
-    // This will be implemented when we wire up mutations
-    // For now, just log
-    console.log('[PortfolioContext] Removing from portfolio:', ticker);
+    try {
+      console.log('[PortfolioContext] Removing from portfolio:', ticker);
+      await portfolioHook.removeFromPortfolio.mutateAsync(ticker);
+    } catch (error) {
+      console.error('[PortfolioContext] Error removing from portfolio:', error);
+      throw error;
+    }
   };
 
   const value: PortfolioContextType = {
-    portfolio,
-    isLoading,
-    error: error as Error | null,
+    portfolio: portfolioHook.portfolio,
+    isLoading: portfolioHook.isLoading,
+    error: portfolioHook.error as Error | null,
     isInPortfolio,
     addToPortfolio,
     removeFromPortfolio,
-    refetch,
+    refetch: portfolioHook.refetch,
   };
 
   return <PortfolioContext.Provider value={value}>{children}</PortfolioContext.Provider>;
